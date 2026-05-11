@@ -22,7 +22,7 @@ export const databaseConfig: TypeOrmModuleAsyncOptions = {
         ? ['error', 'warn']
         : ['error', 'warn', 'schema', 'query'],
       logger: isProduction ? 'file' : 'debug',
-      
+
       extra: {
         min: 5,
         max: 10,
