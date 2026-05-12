@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcrypt';
-import { PaginationDto } from './typeDto';
+import { PaginationDto } from '../common/pagination.dto';
 import { PaginationQueryDto } from '../common/pagination-query.dto';
 
 async function paginationHandler<T>(

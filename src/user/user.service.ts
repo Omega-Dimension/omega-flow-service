@@ -4,9 +4,15 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { throwConflict } from '../libs/throwError';
-import { PasswordCheck, PasswordHash } from '../libs/globalFunctions';
+import { throwConflict, throwInternalError } from '../libs/throwError';
+import {
+  paginationHandler,
+  PasswordCheck,
+  PasswordHash,
+  queryHandler,
+} from '../libs/globalFunctions';
 import { ConfigService } from '@nestjs/config';
+import { PaginationQueryDto } from '../common/pagination-query.dto';
 
 @Injectable()
 export class UserService {
@@ -17,11 +23,12 @@ export class UserService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    const existingUser = await this.userRepository.findOne({
-      where: { email: createUserDto.email },
-    });
-    if (existingUser) throwConflict('Email already exists', { field: 'email' });
-
+    if (
+      await this.userRepository.exists({
+        where: { email: createUserDto.email },
+      })
+    )
+      throwConflict('Email already exists', { field: 'email' });
     return {
       success: !!(await this.userRepository.save(
         this.userRepository.create({
@@ -35,19 +42,49 @@ export class UserService {
     };
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll(query: PaginationQueryDto) {
+    try {
+      const [data, total] = await this.userRepository.findAndCount({
+        ...queryHandler(query),
+        order: {
+          created_at: 'DESC',
+        },
+      });
+
+      return paginationHandler(data, total, query.page_number, query.per_page);
+    } catch (error) {
+      throwInternalError('Failed to fetch');
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: string) {
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) {
+      throwConflict('User not Found', { field: id });
+    }
+    return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    await this.findOne(id);
+    try {
+      const { affected } = await this.userRepository.update(id, updateUserDto);
+
+      if (!affected) throwConflict('Update failed', { field: id });
+
+      return { success: true };
+    } catch (error) {
+      throwInternalError('Failed to update');
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    try {
+      const { affected } = await this.userRepository.delete(id);
+      if (!affected) throwConflict('User not found', { field: id });
+      return { success: true };
+    } catch (error) {
+      throwInternalError('Failed to delete');
+    }
   }
 }
