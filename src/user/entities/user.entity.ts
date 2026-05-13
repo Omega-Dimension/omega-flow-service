@@ -2,15 +2,22 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Client } from '../../client/entities/client.entity';
 
 @Entity('user')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  /**
+   * User email (unique + indexed for fast lookup)
+   */
+  @Index()
   @Column({ unique: true, type: 'varchar', length: 255 })
   email: string;
 
@@ -29,7 +36,20 @@ export class User {
   @Column({ type: 'varchar', length: 10, default: 'USD' })
   default_currency: string;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
+  /**
+   * Tax percentage stored as decimal
+   * Uses transformer to handle DB string ↔ number conversion
+   */
+  @Column({
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    default: 0,
+    transformer: {
+      to: (value: number) => value,
+      from: (value: string) => parseFloat(value),
+    },
+  })
   default_tax_percent: number;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
@@ -37,4 +57,7 @@ export class User {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updated_at: Date;
+
+  @OneToMany(() => Client, (client) => client.user)
+  clients: Client[];
 }
