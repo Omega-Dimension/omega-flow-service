@@ -18,7 +18,7 @@ export class UserService {
     // User database repository
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    
+
     // Access environment configuration
     private readonly configService: ConfigService,
   ) {}
@@ -59,9 +59,7 @@ export class UserService {
   async findOne(id: string) {
     const user = await this.userRepository.findOneBy({ id });
 
-    if (!user) {
-      throwNotFound('User not Found', { field: id });
-    }
+    if (!user) throwNotFound('User not Found', { field: id });
 
     return user;
   }
@@ -71,9 +69,7 @@ export class UserService {
 
     const { affected } = await this.userRepository.update(id, updateUserDto);
 
-    if (!affected) {
-      throwConflict('Update failed', { field: id });
-    }
+    if (!affected) throwConflict('Update failed', { field: id });
 
     return { success: true };
   }
@@ -81,9 +77,7 @@ export class UserService {
   async remove(id: string) {
     const { affected } = await this.userRepository.delete(id);
 
-    if (!affected) {
-      throwConflict('Delete failed', { field: id });
-    }
+    if (!affected) throwConflict('Delete failed', { field: id });
 
     return { success: true };
   }

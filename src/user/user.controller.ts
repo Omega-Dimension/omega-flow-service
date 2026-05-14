@@ -31,7 +31,6 @@ export class UserController {
      */
     private readonly userService: UserService,
   ) {}
-
   /**
    * Create new user
    * POST /users
@@ -41,7 +40,6 @@ export class UserController {
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
-
   /**
    * Get all users (paginated)
    * GET /users
@@ -50,7 +48,6 @@ export class UserController {
   findAll(@Query() query: PaginationQueryDto) {
     return this.userService.findAll(query);
   }
-
   /**
    * Get single user by ID
    * GET /users/:id
