@@ -11,4 +11,10 @@ export class PaginationQueryDto {
   @Type(() => Number)
   @Min(1)
   per_page: number = 10;
+
+  @IsOptional()
+  order_by?: string;
+
+  @IsOptional()
+  order_type?: 'ASC' | 'DESC';
 }

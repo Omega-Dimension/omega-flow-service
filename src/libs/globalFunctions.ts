@@ -26,7 +26,7 @@ function paginationHandler<T>(
  * ---------------------------------------------------
  * Converts page-based query into DB skip/take format.
  */
-function queryHandler(query: PaginationQueryDto) {
+function paginationQueryHandler(query: PaginationQueryDto) {
   return {
     take: query.per_page,
     skip: (query.page_number - 1) * query.per_page,
@@ -53,7 +53,7 @@ async function PasswordCheck(password: string, hash: string) {
 
 export {
   paginationHandler,
-  queryHandler,
+  paginationQueryHandler,
   PasswordHash,
   PasswordCheck,
 };
