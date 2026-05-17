@@ -6,7 +6,11 @@ import { Client } from './entities/client.entity';
 import { ILike, Repository } from 'typeorm';
 import { throwConflict, throwNotFound } from '../libs/throwError';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
-import { paginationHandler, paginationQueryHandler } from '../libs/globalFunctions';
+import {
+  paginationHandler,
+  paginationQueryHandler,
+} from '../libs/globalFunctions';
+import { ClientQueryDto } from './dto/query.dto';
 
 @Injectable()
 export class ClientService {
@@ -42,41 +46,41 @@ export class ClientService {
     };
   }
 
- /**
- * Get Client List (Paginated + Filtered)
- * ---------------------------------------------------
- * Use case:
- * - Retrieves a paginated list of clients
- * - Supports optional filtering by company and country
- * - Uses SQL LIKE search for company (case-insensitive)
- * - Uses exact match for country
- *
- * Flow:
- * 1. Extract pagination + filters from query
- * 2. Build dynamic WHERE conditions
- * 3. Apply pagination (take/skip)
- * 4. Sort by newest clients first
- * 5. Return standardized pagination response
- *
- * Example query:
- * ?page_number=1&per_page=10&company=John&country=SG
- */
-async findAll(query: ClientQueryDto) {
-  const { page_number, per_page, company, country } = query;
+  /**
+   * Get Client List (Paginated + Filtered)
+   * ---------------------------------------------------
+   * Use case:
+   * - Retrieves a paginated list of clients
+   * - Supports optional filtering by company and country
+   * - Uses SQL LIKE search for company (case-insensitive)
+   * - Uses exact match for country
+   *
+   * Flow:
+   * 1. Extract pagination + filters from query
+   * 2. Build dynamic WHERE conditions
+   * 3. Apply pagination (take/skip)
+   * 4. Sort by newest clients first
+   * 5. Return standardized pagination response
+   *
+   * Example query:
+   * ?page_number=1&per_page=10&company=John&country=SG
+   */
+  async findAll(query: ClientQueryDto) {
+    const { page_number, per_page, company, country } = query;
 
-  const [data, total] = await this.clientRepository.findAndCount({
-    where: {
-      ...(company && { company: ILike(`%${company}%`) }),
-      ...(country && { country }),
-    },
-    ...paginationQueryHandler(query),
-    order: {
-      created_at: 'DESC',
-    },
-  });
+    const [data, total] = await this.clientRepository.findAndCount({
+      where: {
+        ...(company && { company: ILike(`%${company}%`) }),
+        ...(country && { country }),
+      },
+      ...paginationQueryHandler(query),
+      order: {
+        created_at: 'DESC',
+      },
+    });
 
-  return paginationHandler(data, total, page_number, per_page);
-}
+    return paginationHandler(data, total, page_number, per_page);
+  }
   /**
    * Get single client
    */
