@@ -6,10 +6,12 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
+import { Project } from '../../project/entities/project.entity';
 
 @Entity('client')
 export class Client {
@@ -22,13 +24,6 @@ export class Client {
   @Index()
   @Column()
   user_id: string;
-
-  /**
-   * Many Clients belong to one User
-   */
-  @ManyToOne(() => User, (user) => user.clients)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  user: User;
 
   @Column({ type: 'varchar', length: 150 })
   name: string;
@@ -56,4 +51,14 @@ export class Client {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updated_at: Date;
+
+  /**
+   * Many Clients belong to one User
+   */
+  @ManyToOne(() => User, (user) => user.clients)
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  user: User;
+
+  @OneToMany(() => Project, (project) => project.client)
+  projects: Project[];
 }
