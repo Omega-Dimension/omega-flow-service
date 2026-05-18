@@ -86,7 +86,7 @@ export class ClientService {
    */
 
   async findOne(id: string) {
-    const client = await this.clientRepository.findOneBy({ id });
+    const client = await this.clientRepository.findOne({ where : {id} });
     if (!client) throwNotFound('Client not found', { field: id });
     return client;
   }

@@ -3,15 +3,16 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { throwConflict, throwNotFound } from '../libs/throwError';
 import {
   paginationHandler,
+  paginationQueryHandler,
   PasswordHash,
-  queryHandler,
 } from '../libs/globalFunctions';
 import { ConfigService } from '@nestjs/config';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { UserQueryDto } from './dto/query.dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -45,19 +46,24 @@ export class UserService {
     };
   }
 
-  async findAll(query: PaginationQueryDto) {
+  async findAll(query: UserQueryDto) {
+    const { page_number, per_page, email, company_name } = query;
     const [data, total] = await this.userRepository.findAndCount({
-      ...queryHandler(query),
+      where: {
+        ...(email && { email: ILike(`%${email}%`) }),
+        ...(company_name && { company_name: ILike(`%${company_name}%`) }),
+      },
+      ...paginationQueryHandler(query),
       order: {
         created_at: 'DESC',
       },
     });
 
-    return paginationHandler(data, total, query.page_number, query.per_page);
+    return paginationHandler(data, total, page_number, per_page);
   }
 
   async findOne(id: string) {
-    const user = await this.userRepository.findOneBy({ id });
+    const user = await this.userRepository.findOne({ where: { id } });
 
     if (!user) throwNotFound('User not Found', { field: id });
 
