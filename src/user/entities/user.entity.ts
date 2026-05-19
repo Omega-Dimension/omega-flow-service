@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Client } from '../../client/entities/client.entity';
 import { Project } from '../../project/entities/project.entity';
+import { Invoice } from '../../invoice/entities/invoice.entity';
 
 @Entity('user')
 export class User {
@@ -59,9 +60,16 @@ export class User {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updated_at: Date;
 
+  /**
+   * Relations
+   */
+
   @OneToMany(() => Client, (client) => client.user)
   clients: Client[];
 
   @OneToMany(() => Project, (project) => project.user)
-  projects : Project[];
+  projects: Project[];
+
+  @OneToMany(() => Invoice, (invoice) => invoice.user)
+  invoices: Invoice[];
 }

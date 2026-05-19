@@ -7,8 +7,10 @@ import { Repository } from 'typeorm';
 import { Client } from '../client/entities/client.entity';
 import { throwConflict, throwNotFound } from '../libs/throwError';
 import { ProjectQueryDto } from './dto/query.dto';
-import { paginationHandler, paginationQueryHandler } from '../libs/globalFunctions';
-
+import {
+  paginationHandler,
+  paginationQueryHandler,
+} from '../libs/globalFunctions';
 @Injectable()
 export class ProjectService {
   constructor(
@@ -19,6 +21,11 @@ export class ProjectService {
     private readonly clientRepository: Repository<Client>,
   ) {}
 
+  /**
+   * Use Case: Create Project
+   * - validate client
+   * - create project under user
+   */
   async create(user_id: string, createProjectDto: CreateProjectDto) {
     const client = await this.clientRepository.findOneBy({
       id: createProjectDto.client_id,
@@ -36,6 +43,12 @@ export class ProjectService {
     };
   }
 
+  /**
+   * Use Case: Get Projects (Paginated)
+   * - list projects
+   * - filter by client/status
+   * - include client relation
+   */
   async findAll(query: ProjectQueryDto) {
     const { page_number, per_page, client_id, status } = query;
 
@@ -44,23 +57,20 @@ export class ProjectService {
         ...(client_id && { client_id }),
         ...(status && { status }),
       },
-
       relations: { client: true },
-
       ...paginationQueryHandler(query),
       order: {
         created_at: 'DESC',
       },
     });
 
-    return paginationHandler(
-      data,
-      total,
-      page_number,
-      per_page,
-    );
+    return paginationHandler(data, total, page_number, per_page);
   }
 
+  /**
+   * Use Case: Get Single Project
+   * - find project with relations
+   */
   async findOne(id: string) {
     const project = await this.projectRepository.findOne({
       where: { id },
@@ -69,43 +79,32 @@ export class ProjectService {
         user: true,
       },
     });
-
     if (!project) throwNotFound('Project not found', { field: id });
-
     return project;
   }
 
   /**
-   * Update project
+   * Use Case: Update Project
+   * - verify project exists
+   * - update project data
    */
   async update(id: string, updateProjectDto: UpdateProjectDto) {
     await this.findOne(id);
-
-    const { affected } = await this.projectRepository.update(
-      id,
-      updateProjectDto,
-    );
-
-    if (!affected)
-      throwConflict('Update failed', {
-        field: id,
-      });
-
+    const { affected } = await this.projectRepository.update(id, updateProjectDto);
+    if (!affected) throwConflict('Update failed', { field: id });
     return {
       success: true,
     };
   }
 
   /**
-   * Delete project
+   * Use Case: Delete Project
+   * - delete project by id
    */
   async remove(id: string) {
     const { affected } = await this.projectRepository.delete(id);
 
-    if (!affected)
-      throwConflict('Delete failed', {
-        field: id,
-      });
+    if (!affected) throwConflict('Delete failed', { field: id });
 
     return {
       success: true,

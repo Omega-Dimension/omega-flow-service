@@ -4,11 +4,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Client } from '../../client/entities/client.entity';
+import { Invoice } from '../../invoice/entities/invoice.entity';
 
 @Entity('project')
 export class Project {
@@ -64,4 +66,8 @@ export class Project {
   @ManyToOne(() => Client, (client) => client.projects)
   @JoinColumn({name : "client_id", referencedColumnName : "id"})
   client : Client;
+  
+  @OneToMany(() => Invoice, (invoice) => invoice.project)
+  invoices : Invoice[];
+
 }

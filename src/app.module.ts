@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { ClientModule } from './client/client.module';
 import { ProjectModule } from './project/project.module';
+import { InvoiceModule } from './invoice/invoice.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -14,6 +15,7 @@ import { ProjectModule } from './project/project.module';
     UserModule,
     ClientModule,
     ProjectModule,
+    InvoiceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -11,7 +11,6 @@ import {
   PasswordHash,
 } from '../libs/globalFunctions';
 import { ConfigService } from '@nestjs/config';
-import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { UserQueryDto } from './dto/query.dto';
 @Injectable()
 export class UserService {
@@ -24,6 +23,12 @@ export class UserService {
     private readonly configService: ConfigService,
   ) {}
 
+  /**
+   * Use Case: Create User
+   * - check duplicate email
+   * - hash password
+   * - create user
+   */
   async create(createUserDto: CreateUserDto) {
     if (
       await this.userRepository.exists({
@@ -45,7 +50,12 @@ export class UserService {
       )),
     };
   }
-
+  /**
+   * Use Case: Get Users (Paginated)
+   * - list users
+   * - filter by email/company
+   * - return paginated result
+   */
   async findAll(query: UserQueryDto) {
     const { page_number, per_page, email, company_name } = query;
     const [data, total] = await this.userRepository.findAndCount({
@@ -62,6 +72,11 @@ export class UserService {
     return paginationHandler(data, total, page_number, per_page);
   }
 
+  /**
+   * Use Case: Get Single User
+   * - find user by id
+   */
+
   async findOne(id: string) {
     const user = await this.userRepository.findOne({ where: { id } });
 
@@ -70,6 +85,11 @@ export class UserService {
     return user;
   }
 
+  /**
+   * Use Case: Update User
+   * - verify user exists
+   * - update user data
+   */
   async update(id: string, updateUserDto: UpdateUserDto) {
     await this.findOne(id);
 
@@ -79,7 +99,10 @@ export class UserService {
 
     return { success: true };
   }
-
+  /**
+   * Use Case: Delete User
+   * - delete user by id
+   */
   async remove(id: string) {
     const { affected } = await this.userRepository.delete(id);
 

@@ -22,6 +22,11 @@ export class ClientService {
     private readonly clientRepository: Repository<Client>,
   ) {}
 
+  /**
+   * Use Case: Create Client
+   * - check duplicate email
+   * - create client under user
+   */
   async create(user_id: string, createClientDto: CreateClientDto) {
     if (
       createClientDto.email &&
@@ -47,23 +52,10 @@ export class ClientService {
   }
 
   /**
-   * Get Client List (Paginated + Filtered)
-   * ---------------------------------------------------
-   * Use case:
-   * - Retrieves a paginated list of clients
-   * - Supports optional filtering by company and country
-   * - Uses SQL LIKE search for company (case-insensitive)
-   * - Uses exact match for country
-   *
-   * Flow:
-   * 1. Extract pagination + filters from query
-   * 2. Build dynamic WHERE conditions
-   * 3. Apply pagination (take/skip)
-   * 4. Sort by newest clients first
-   * 5. Return standardized pagination response
-   *
-   * Example query:
-   * ?page_number=1&per_page=10&company=John&country=SG
+   * Use Case: Get Clients (Paginated)
+   * - list clients
+   * - filter by company/country
+   * - return paginated result
    */
   async findAll(query: ClientQueryDto) {
     const { page_number, per_page, company, country } = query;
@@ -82,15 +74,20 @@ export class ClientService {
     return paginationHandler(data, total, page_number, per_page);
   }
   /**
-   * Get single client
+   * Use Case: Get Single Client
+   * - find client by id
    */
-
   async findOne(id: string) {
-    const client = await this.clientRepository.findOne({ where : {id} });
+    const client = await this.clientRepository.findOne({ where: { id } });
     if (!client) throwNotFound('Client not found', { field: id });
     return client;
   }
 
+  /**
+   * Use Case: Update Client
+   * - verify client exists
+   * - update client data
+   */
   async update(id: string, updateClientDto: UpdateClientDto) {
     await this.findOne(id);
     const { affected } = await this.clientRepository.update(
@@ -103,6 +100,10 @@ export class ClientService {
     return { success: true };
   }
 
+  /**
+   * Use Case: Delete Client
+   * - soft delete client
+   */
   async remove(id: string) {
     const { affected } = await this.clientRepository.softDelete(id);
     if (!affected) throwConflict('Delete failed', { field: id });
