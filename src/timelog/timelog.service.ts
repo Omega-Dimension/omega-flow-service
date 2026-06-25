@@ -10,6 +10,7 @@ import {
   paginationQueryHandler,
 } from '../libs/globalFunctions';
 import { throwConflict, throwNotFound } from '../libs/throwError';
+import { Project } from '../project/entities/project.entity';
 
 @Injectable()
 export class TimelogService {
@@ -18,13 +19,20 @@ export class TimelogService {
 
     @InjectRepository(Timelog)
     private readonly timelogRepository: Repository<Timelog>,
-    private readonly projectRepository : 
+    private readonly projectRepository: Repository<Project>,
   ) {}
 
   /**
    * Use Case: Create Timelog
    */
   async create(createTimelogDto: CreateTimelogDto) {
+    if (
+      !(await this.projectRepository.exists({
+        where: { id: createTimelogDto.project_id },
+      }))
+    )
+      throwNotFound('Project not found');
+
     return {
       success: !!(await this.timelogRepository.save(
         this.timelogRepository.create(createTimelogDto),
@@ -50,7 +58,7 @@ export class TimelogService {
       },
       ...paginationQueryHandler(query),
       order: {
-        log_date : 'DESC',
+        log_date: 'DESC',
         created_at: 'DESC',
       },
     });
