@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { ClientModule } from './client/client.module';
 import { ProjectModule } from './project/project.module';
 import { InvoiceModule } from './invoice/invoice.module';
+import { TimelogModule } from './timelog/timelog.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -16,6 +17,7 @@ import { InvoiceModule } from './invoice/invoice.module';
     ClientModule,
     ProjectModule,
     InvoiceModule,
+    TimelogModule,
   ],
   controllers: [AppController],
   providers: [AppService],

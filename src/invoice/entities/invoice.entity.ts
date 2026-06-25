@@ -6,12 +6,14 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Client } from '../../client/entities/client.entity';
 import { Project } from '../../project/entities/project.entity';
+import { InvoiceItem } from './invoice-item.entity';
 
 @Entity('invoice')
 export class Invoice {
@@ -55,7 +57,7 @@ export class Invoice {
       from: (value: string) => parseFloat(value),
     },
   })
-  subtotal: number;
+  sub_total: number;
 
   @Column({
     type: 'decimal',
@@ -117,4 +119,7 @@ export class Invoice {
   @ManyToOne(() => Project, (project) => project.invoices)
   @JoinColumn({ name: 'project_id', referencedColumnName: 'id' })
   project: Project;
+
+  @OneToMany(() => InvoiceItem, (invoiceItem) => invoiceItem.invoice)
+  invoice_items: InvoiceItem[];
 }

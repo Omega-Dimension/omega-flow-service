@@ -10,6 +10,7 @@ import {
 import { Client } from '../../client/entities/client.entity';
 import { Project } from '../../project/entities/project.entity';
 import { Invoice } from '../../invoice/entities/invoice.entity';
+import { Timelog } from '../../timelog/entities/timelog.entity';
 
 @Entity('user')
 export class User {
@@ -72,4 +73,7 @@ export class User {
 
   @OneToMany(() => Invoice, (invoice) => invoice.user)
   invoices: Invoice[];
+
+  @OneToMany(() => Timelog, (timelog) => timelog.user)
+  time_logs : Timelog[];
 }

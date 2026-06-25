@@ -11,6 +11,7 @@ import {
 import { User } from '../../user/entities/user.entity';
 import { Client } from '../../client/entities/client.entity';
 import { Invoice } from '../../invoice/entities/invoice.entity';
+import { Timelog } from '../../timelog/entities/timelog.entity';
 
 @Entity('project')
 export class Project {
@@ -56,7 +57,7 @@ export class Project {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updated_at: Date;
 
-   /**
+  /**
    * Relations
    */
   @ManyToOne(() => User, (user) => user.projects)
@@ -64,10 +65,12 @@ export class Project {
   user: User;
 
   @ManyToOne(() => Client, (client) => client.projects)
-  @JoinColumn({name : "client_id", referencedColumnName : "id"})
-  client : Client;
-  
-  @OneToMany(() => Invoice, (invoice) => invoice.project)
-  invoices : Invoice[];
+  @JoinColumn({ name: 'client_id', referencedColumnName: 'id' })
+  client: Client;
 
+  @OneToMany(() => Invoice, (invoice) => invoice.project)
+  invoices: Invoice[];
+
+  @OneToMany(() => Timelog, (timelog) => timelog.project)
+  time_logs: Timelog[];
 }
