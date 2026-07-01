@@ -31,7 +31,7 @@ export class ProjectService {
       id: createProjectDto.client_id,
     });
 
-    if (!clientExists) throwNotFound('Client not found', { field: 'client_id' });
+    if (!clientExists) throwNotFound('Client not found');
 
     return {
       success: !!(await this.projectRepository.save(
@@ -79,7 +79,7 @@ export class ProjectService {
         user: true,
       },
     });
-    if (!project) throwNotFound('Project not found', { field: id });
+    if (!project) throwNotFound('Project not found');
     return project;
   }
 
@@ -91,7 +91,7 @@ export class ProjectService {
   async update(id: string, updateProjectDto: UpdateProjectDto) {
     await this.findOne(id);
     const { affected } = await this.projectRepository.update(id, updateProjectDto);
-    if (!affected) throwConflict('Update failed', { field: id });
+    if (!affected) throwConflict('Update failed');
     return {
       success: true,
     };
@@ -104,7 +104,7 @@ export class ProjectService {
   async remove(id: string) {
     const { affected } = await this.projectRepository.delete(id);
 
-    if (!affected) throwConflict('Delete failed', { field: id });
+    if (!affected) throwConflict('Delete failed');
 
     return {
       success: true,

@@ -20,7 +20,7 @@ export const databaseConfig: TypeOrmModuleAsyncOptions = {
       database: config.get<string>('DB_NAME'),
       username: config.get<string>('DB_USERNAME'),
       password: config.get<string>('DB_PASSWORD'),
-
+      entities: [__dirname + '/../**/*.entity{.ts,.js}'],
       // Auto register entities
       autoLoadEntities: true,
 
@@ -43,18 +43,19 @@ export const databaseConfig: TypeOrmModuleAsyncOptions = {
         ? ['error', 'warn']
         : ['error', 'warn', 'schema', 'query'],
 
-      logger: isProduction ? 'file' : 'debug',
-
+      logger: isProduction ? 'file' : 'advanced-console',
+      ssl: isProduction ? { rejectUnauthorized: false } : false,
       /**
        * Connection pool settings
        * Controls database performance and resource usage
        */
       extra: {
-        min: 5,
+        min: 2,
         max: 10,
         connectionTimeoutMillis: 5000,
         idleTimeoutMillis: 30000,
-        maxUses: 10000,
+        keepAlive: true,
+        keepAliveInitialDelayMillis: 10000,
       },
     };
   },

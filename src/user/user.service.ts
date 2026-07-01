@@ -35,13 +35,12 @@ export class UserService {
         where: { email: createUserDto.email },
       })
     )
-      throwConflict('Email already exists', { field: 'email' });
+      throwConflict('Email already exists');
 
     return {
       success: !!(await this.userRepository.save(
         this.userRepository.create({
           ...createUserDto,
-
           password: await PasswordHash(
             createUserDto.password,
             this.configService.get<number>('SALT_ROUND') || 12,
@@ -80,7 +79,7 @@ export class UserService {
   async findOne(id: string) {
     const user = await this.userRepository.findOne({ where: { id } });
 
-    if (!user) throwNotFound('User not Found', { field: id });
+    if (!user) throwNotFound('User not Found');
 
     return user;
   }
@@ -95,7 +94,7 @@ export class UserService {
 
     const { affected } = await this.userRepository.update(id, updateUserDto);
 
-    if (!affected) throwConflict('Update failed', { field: id });
+    if (!affected) throwConflict('Update failed');
 
     return { success: true };
   }
@@ -106,7 +105,7 @@ export class UserService {
   async remove(id: string) {
     const { affected } = await this.userRepository.delete(id);
 
-    if (!affected) throwConflict('Delete failed', { field: id });
+    if (!affected) throwConflict('Delete failed');
 
     return { success: true };
   }

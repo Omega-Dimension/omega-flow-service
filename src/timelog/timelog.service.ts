@@ -76,7 +76,7 @@ export class TimelogService {
       where: { id },
       relations: { project: true, user: true },
     });
-    if (!timelog) throwNotFound('Timelog not found', { field: id });
+    if (!timelog) throwNotFound('Timelog not found');
 
     return timelog;
   }
@@ -94,7 +94,7 @@ export class TimelogService {
       updateTimelogDto,
     );
 
-    if (!affected) throwConflict('Update failed', { field: id });
+    if (!affected) throwConflict('Update failed');
 
     return { success: true };
   }
@@ -106,7 +106,7 @@ export class TimelogService {
   async remove(id: string) {
     const { affected } = await this.timelogRepository.delete(id);
 
-    if (!affected) throwConflict('Delete failed', { field: id });
+    if (!affected) throwConflict('Delete failed');
 
     return { success: true };
   }

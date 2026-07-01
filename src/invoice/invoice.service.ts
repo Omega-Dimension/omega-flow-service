@@ -35,7 +35,7 @@ export class InvoiceService {
     const clientExists = await this.clientRepository.existsBy({
       id: createInvoiceDto.client_id,
     });
-    if (!clientExists) throwNotFound('Client not found', { field: 'client_id' });
+    if (!clientExists) throwNotFound('Client not found');
 
     const subTotal = createInvoiceDto.invoice_items.reduce(
       (acc, item) => acc + item.quantity * item.unit_price,
@@ -91,7 +91,7 @@ export class InvoiceService {
       where: { id },
       relations: { client: true, project: true, invoice_items: true },
     });
-    if (!invoice) throwNotFound('Invoice not found', { field: id });
+    if (!invoice) throwNotFound('Invoice not found');
 
     return invoice;
   }
@@ -109,7 +109,7 @@ export class InvoiceService {
       updateInvoiceDto,
     );
 
-    if (!affected) throwConflict('Update failed', { field: id });
+    if (!affected) throwConflict('Update failed');
     return { success: true };
   }
    /**
@@ -119,7 +119,7 @@ export class InvoiceService {
   async remove(id: string) {
     const { affected } = await this.invoiceRepository.softDelete(id);
 
-    if (!affected) throwConflict('Delete failed', { field: id });
+    if (!affected) throwConflict('Delete failed');
 
     return { success: true };
   }

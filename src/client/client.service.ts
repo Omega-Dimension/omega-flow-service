@@ -36,9 +36,7 @@ export class ClientService {
         },
       }))
     ) {
-      throwConflict('Email already exists', {
-        field: 'email',
-      });
+      throwConflict('Email already exists');
     }
 
     return {
@@ -79,7 +77,7 @@ export class ClientService {
    */
   async findOne(id: string) {
     const client = await this.clientRepository.findOne({ where: { id } });
-    if (!client) throwNotFound('Client not found', { field: id });
+    if (!client) throwNotFound('Client not found');
     return client;
   }
 
@@ -95,7 +93,7 @@ export class ClientService {
       updateClientDto,
     );
 
-    if (!affected) throwConflict('Update failed', { field: id });
+    if (!affected) throwConflict('Update failed');
 
     return { success: true };
   }
@@ -106,7 +104,7 @@ export class ClientService {
    */
   async remove(id: string) {
     const { affected } = await this.clientRepository.softDelete(id);
-    if (!affected) throwConflict('Delete failed', { field: id });
+    if (!affected) throwConflict('Delete failed');
     return { success: true };
   }
 }
