@@ -19,6 +19,8 @@ export class TimelogService {
 
     @InjectRepository(Timelog)
     private readonly timelogRepository: Repository<Timelog>,
+
+    @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
   ) {}
 
