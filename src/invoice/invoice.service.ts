@@ -66,10 +66,11 @@ export class InvoiceService {
   }
 
   async findAll(query: InvoiceQueryDto) {
-    const { page_number, per_page, client_id, status } = query;
+    const { page_number, per_page, client_id, project_id, status } = query;
     const [data, total] = await this.invoiceRepository.findAndCount({
       where: {
         ...(client_id && { client_id }),
+        ...(project_id && {project_id}),
         ...(status && { status }),
       },
 

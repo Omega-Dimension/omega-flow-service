@@ -107,11 +107,6 @@ export class Invoice {
   /**
    * Relations
    */
-
-  @ManyToOne(() => User, (user) => user.invoices)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  user: User;
-
   @ManyToOne(() => Client, (client) => client.invoices)
   @JoinColumn({ name: 'client_id', referencedColumnName: 'id' })
   client: Client;

@@ -1,0 +1,100 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Portfolio } from './entities/portfolio.entity';
+import { CreatePortfolioDto } from './dto/create-portfolio.dto';
+import { UpdatePortfolioDto } from './dto/update-portfolio.dto';
+import { PortfolioQueryDto } from './dto/query.dto';
+import { throwConflict, throwNotFound } from '../libs/throwError';
+import {
+  paginationHandler,
+  paginationQueryHandler,
+} from '../libs/globalFunctions';
+
+@Injectable()
+export class PortfolioService {
+  constructor(
+    @InjectRepository(Portfolio)
+    private readonly portfolioRepository: Repository<Portfolio>,
+  ) {}
+
+  /**
+   * Use Case: Create Portfolio Item
+   * - create portfolio entry under user
+   */
+  async create(user_id: string, createPortfolioDto: CreatePortfolioDto) {
+    return {
+      success: !!(await this.portfolioRepository.save(
+        this.portfolioRepository.create({
+          user_id,
+          ...createPortfolioDto,
+        }),
+      )),
+    };
+  }
+
+  /**
+   * Use Case: Get Portfolio Items (Paginated)
+   * - list portfolio entries
+   * - filter by user
+   */
+  async findAll(query: PortfolioQueryDto) {
+    const { page_number, per_page, user_id } = query;
+
+    const [data, total] = await this.portfolioRepository.findAndCount({
+      where: {
+        ...(user_id && { user_id }),
+      },
+      ...paginationQueryHandler(query),
+      order: {
+        created_at: 'DESC',
+      },
+    });
+
+    return paginationHandler(data, total, page_number, per_page);
+  }
+
+  /**
+   * Use Case: Get Single Portfolio Item
+   * - find portfolio entry with relations
+   */
+  async findOne(id: string) {
+    const portfolio = await this.portfolioRepository.findOne({
+      where: { id },
+      relations: { user: true },
+    });
+    if (!portfolio) throwNotFound('Portfolio item not found');
+    return portfolio;
+  }
+
+  /**
+   * Use Case: Update Portfolio Item
+   * - verify portfolio entry exists
+   * - update portfolio data
+   */
+  async update(id: string, updatePortfolioDto: UpdatePortfolioDto) {
+    await this.findOne(id);
+    const { affected } = await this.portfolioRepository.update(
+      id,
+      updatePortfolioDto,
+    );
+    if (!affected) throwConflict('Update failed');
+    return {
+      success: true,
+    };
+  }
+
+  /**
+   * Use Case: Delete Portfolio Item
+   * - delete portfolio entry by id
+   */
+  async remove(id: string) {
+    const { affected } = await this.portfolioRepository.delete(id);
+
+    if (!affected) throwConflict('Delete failed');
+
+    return {
+      success: true,
+    };
+  }
+}

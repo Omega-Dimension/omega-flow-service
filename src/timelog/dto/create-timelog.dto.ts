@@ -1,5 +1,7 @@
 import {
+  IsBoolean,
   IsDateString,
+  IsMilitaryTime,
   IsNumber,
   IsOptional,
   IsString,
@@ -11,14 +13,26 @@ export class CreateTimelogDto {
   @IsUUID()
   project_id: string;
 
-  @IsNumber()
-  @Min(0.25)
-  hours: number;
-
   @IsOptional()
   @IsString()
   description?: string;
 
   @IsDateString()
   log_date: Date;
+
+  @IsOptional()
+  @IsMilitaryTime()
+  start_time?: string;
+
+  @IsOptional()
+  @IsMilitaryTime()
+  end_time?: string;
+
+  @IsNumber()
+  @Min(0)
+  hours: number;
+
+  @IsOptional()
+  @IsBoolean()
+  is_billable?: boolean;
 }

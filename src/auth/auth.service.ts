@@ -15,7 +15,6 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
-
   /**
    * Use Case: Register User
    * 1. Check whether the email already exists.
@@ -105,11 +104,6 @@ export class AuthService {
       select: [
         'id',
         'email',
-        'company_name',
-        'company_address',
-        'logo_url',
-        'default_currency',
-        'default_tax_percent',
         'created_at',
         'updated_at',
       ],

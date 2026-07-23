@@ -10,6 +10,12 @@ import { ProjectModule } from './project/project.module';
 import { InvoiceModule } from './invoice/invoice.module';
 import { TimelogModule } from './timelog/timelog.module';
 import { AuthModule } from './auth/auth.module';
+import { ClientProfileModule } from './client-profile/client-profile.module';
+import { ContractModule } from './contract/contract.module';
+import { FreelancerProfileModule } from './freelancer-profile/freelancer-profile.module';
+import { MeetingModule } from './meeting/meeting.module';
+import { PortfolioModule } from './portfolio/portfolio.module';
+import { ReviewModule } from './review/review.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -20,6 +26,12 @@ import { AuthModule } from './auth/auth.module';
     InvoiceModule,
     TimelogModule,
     AuthModule,
+    ClientProfileModule,
+    ContractModule,
+    FreelancerProfileModule,
+    MeetingModule,
+    PortfolioModule,
+    ReviewModule,
   ],
   controllers: [AppController],
   providers: [AppService],

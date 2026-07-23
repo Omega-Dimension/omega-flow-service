@@ -12,6 +12,9 @@ import { User } from '../../user/entities/user.entity';
 import { Client } from '../../client/entities/client.entity';
 import { Invoice } from '../../invoice/entities/invoice.entity';
 import { Timelog } from '../../timelog/entities/timelog.entity';
+import { Review } from '../../review/entities/review.entity';
+import { Contract } from '../../contract/entities/contract.entity';
+import { FreelancerProfile } from '../../freelancer-profile/entities/freelancer-profile.entity';
 
 @Entity('project')
 export class Project {
@@ -19,7 +22,7 @@ export class Project {
   id: string;
 
   @Column({ type: 'uuid' })
-  user_id: string;
+  freelancer_id: string;
 
   @Column({ type: 'uuid' })
   client_id: string;
@@ -60,9 +63,6 @@ export class Project {
   /**
    * Relations
    */
-  @ManyToOne(() => User, (user) => user.projects)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  user: User;
 
   @ManyToOne(() => Client, (client) => client.projects)
   @JoinColumn({ name: 'client_id', referencedColumnName: 'id' })
@@ -73,4 +73,14 @@ export class Project {
 
   @OneToMany(() => Timelog, (timelog) => timelog.project)
   time_logs: Timelog[];
+
+  @OneToMany(() => Review, (review) => review.project)
+  reviews: Review[];
+
+  @OneToMany(() => Contract, (contract) => contract.project)
+  contracts: Contract[];
+
+  @ManyToOne(() => FreelancerProfile, (freelancer) => freelancer.projects)
+  @JoinColumn({name : "freelancer_id", referencedColumnName : "id"})
+  freelancer : FreelancerProfile;
 }

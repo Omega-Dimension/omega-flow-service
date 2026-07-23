@@ -3,77 +3,48 @@ import {
   CreateDateColumn,
   Entity,
   Index,
-  OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Client } from '../../client/entities/client.entity';
-import { Project } from '../../project/entities/project.entity';
-import { Invoice } from '../../invoice/entities/invoice.entity';
-import { Timelog } from '../../timelog/entities/timelog.entity';
-
+import { FreelancerProfile } from '../../freelancer-profile/entities/freelancer-profile.entity';
+import { ClientProfile } from '../../client-profile/entities/client-profile.entity';
 @Entity('user')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  /**
-   * User email (unique + indexed for fast lookup)
-   */
   @Index()
-  @Column({ unique: true, type: 'varchar', length: 255 })
+  @Column({
+    unique: true,
+    type: 'varchar',
+    length: 255,
+  })
   email: string;
 
-  @Column({ type: 'text' })
+  @Column()
   password: string;
 
-  @Column({ type: 'varchar', length: 150, nullable: true })
-  company_name?: string;
-
-  @Column({ type: 'text', nullable: true })
-  company_address?: string;
-
-  @Column({ type: 'text', nullable: true })
-  logo_url?: string;
-
-  @Column({ type: 'varchar', length: 10, default: 'USD' })
-  default_currency: string;
-
-  /**
-   * Tax percentage stored as decimal
-   * Uses transformer to handle DB string ↔ number conversion
-   */
   @Column({
-    type: 'decimal',
-    precision: 5,
-    scale: 2,
-    default: 0,
-    transformer: {
-      to: (value: number) => value,
-      from: (value: string) => parseFloat(value),
-    },
+    default: true,
   })
-  default_tax_percent: number;
+  is_active: boolean;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  @CreateDateColumn()
   created_at: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
+  @UpdateDateColumn()
   updated_at: Date;
 
   /**
    * Relations
    */
+  @OneToOne(
+    () => FreelancerProfile,
+    (freelancer_profile) => freelancer_profile.user,
+  )
+  freelancer_profile: FreelancerProfile;
 
-  @OneToMany(() => Client, (client) => client.user)
-  clients: Client[];
-
-  @OneToMany(() => Project, (project) => project.user)
-  projects: Project[];
-
-  @OneToMany(() => Invoice, (invoice) => invoice.user)
-  invoices: Invoice[];
-
-  @OneToMany(() => Timelog, (timelog) => timelog.user)
-  time_logs : Timelog[];
+  @OneToOne(() => ClientProfile, (clientProfile) => clientProfile.user)
+  client_profile: ClientProfile;
 }

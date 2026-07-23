@@ -1,22 +1,20 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Timelog } from './entities/timelog.entity';
+import { Project } from '../project/entities/project.entity';
 import { CreateTimelogDto } from './dto/create-timelog.dto';
 import { UpdateTimelogDto } from './dto/update-timelog.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Timelog } from './entities/timelog.entity';
-import { Repository } from 'typeorm';
 import { TimelogQueryDto } from './dto/query.dto';
+import { throwConflict, throwNotFound } from '../libs/throwError';
 import {
   paginationHandler,
   paginationQueryHandler,
 } from '../libs/globalFunctions';
-import { throwConflict, throwNotFound } from '../libs/throwError';
-import { Project } from '../project/entities/project.entity';
 
 @Injectable()
 export class TimelogService {
   constructor(
-    // Timelog database repository
-
     @InjectRepository(Timelog)
     private readonly timelogRepository: Repository<Timelog>,
 
@@ -25,43 +23,47 @@ export class TimelogService {
   ) {}
 
   /**
-   * Use Case: Create Timelog
+   * Use Case: Create Time Log
+   * - validate project
+   * - create time log under user
    */
-  async create(createTimelogDto: CreateTimelogDto) {
-    if (
-      !(await this.projectRepository.exists({
-        where: { id: createTimelogDto.project_id },
-      }))
-    )
-      throwNotFound('Project not found');
+  async create(user_id: string, createTimelogDto: CreateTimelogDto) {
+    const projectExists = await this.projectRepository.existsBy({
+      id: createTimelogDto.project_id,
+    });
+
+    if (!projectExists) throwNotFound('Project not found');
 
     return {
       success: !!(await this.timelogRepository.save(
-        this.timelogRepository.create(createTimelogDto),
+        this.timelogRepository.create({
+          user_id,
+          ...createTimelogDto,
+        }),
       )),
     };
   }
+
   /**
-   * Use Case: Get Users (Paginated)
-   * - list users
-   * - filter by email/company
-   * - return paginated result
+   * Use Case: Get Time Logs (Paginated)
+   * - list time logs
+   * - filter by project/billable
+   * - include project relation
    */
   async findAll(query: TimelogQueryDto) {
-    const { page_number, per_page, project_id, user_id } = query;
+    const { page_number, per_page, project_id, is_billable } = query;
+
     const [data, total] = await this.timelogRepository.findAndCount({
       where: {
         ...(project_id && { project_id }),
-        ...(user_id && { user_id }),
+        ...(is_billable !== undefined && {
+          is_billable: is_billable === 'true',
+        }),
       },
-      relations: {
-        project: true,
-        user: true,
-      },
+      relations: { project: true },
       ...paginationQueryHandler(query),
       order: {
         log_date: 'DESC',
-        created_at: 'DESC',
       },
     });
 
@@ -69,47 +71,46 @@ export class TimelogService {
   }
 
   /**
-   * Use Case: Get Single Timelog
-   * - find timelog by id
+   * Use Case: Get Single Time Log
+   * - find time log with relations
    */
-
   async findOne(id: string) {
     const timelog = await this.timelogRepository.findOne({
       where: { id },
       relations: { project: true, user: true },
     });
-    if (!timelog) throwNotFound('Timelog not found');
-
+    if (!timelog) throwNotFound('Time log not found');
     return timelog;
   }
 
   /**
-   * Use Case: Update Timelog
-   * - verify timelog exists
-   * - update timelog data
+   * Use Case: Update Time Log
+   * - verify time log exists
+   * - update time log data
    */
   async update(id: string, updateTimelogDto: UpdateTimelogDto) {
     await this.findOne(id);
-
     const { affected } = await this.timelogRepository.update(
       id,
       updateTimelogDto,
     );
-
     if (!affected) throwConflict('Update failed');
-
-    return { success: true };
+    return {
+      success: true,
+    };
   }
 
   /**
-   * Use Case: Delete Timelog
-   * - delete timelog by id
+   * Use Case: Delete Time Log
+   * - delete time log by id
    */
   async remove(id: string) {
     const { affected } = await this.timelogRepository.delete(id);
 
     if (!affected) throwConflict('Delete failed');
 
-    return { success: true };
+    return {
+      success: true,
+    };
   }
 }

@@ -1,7 +1,7 @@
 import { IsIn, IsOptional, IsUUID } from "class-validator";
 import { PaginationQueryDto } from "../../common/dto/pagination-query.dto";
 
-export class InvoiceQueryDto extends PaginationQueryDto {
+export class MeetingQueryDto extends PaginationQueryDto {
     @IsOptional()
     @IsUUID()
     client_id?: string;
@@ -11,6 +11,6 @@ export class InvoiceQueryDto extends PaginationQueryDto {
     project_id?: string;
 
     @IsOptional()
-    @IsIn(['draft', 'pending', 'paid', 'overdue'])
+    @IsIn(['scheduled', 'completed', 'cancelled'])
     status?: string;
 }

@@ -5,14 +5,16 @@ import {
   Entity,
   Index,
   JoinColumn,
-  ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Project } from '../../project/entities/project.entity';
 import { Invoice } from '../../invoice/entities/invoice.entity';
+import { Review } from '../../review/entities/review.entity';
+import { Contract } from '../../contract/entities/contract.entity';
 
 @Entity('client')
 export class Client {
@@ -53,16 +55,23 @@ export class Client {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updated_at: Date;
 
- /**
+  /**
    * Relations
    */
-  @ManyToOne(() => User, (user) => user.clients)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  user: User;
+
+  @OneToMany(() => Contract, (contract) => contract.client)
+  contracts: Contract[];
+
+  @OneToMany(() => Review, (review) => review.client)
+  reviews: Review[];
 
   @OneToMany(() => Project, (project) => project.client)
   projects: Project[];
 
   @OneToMany(() => Invoice, (invoice) => invoice.client)
   invoices: Invoice[];
+
+  @OneToOne(() => User, (user) => user.client_profile)
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  user: User;
 }
