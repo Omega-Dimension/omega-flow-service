@@ -15,15 +15,13 @@ import { Project } from '../../project/entities/project.entity';
 import { Invoice } from '../../invoice/entities/invoice.entity';
 import { Review } from '../../review/entities/review.entity';
 import { Contract } from '../../contract/entities/contract.entity';
+import { Meeting } from '../../meeting/entities/meeting.entity';
 
 @Entity('client')
 export class Client {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  /**
-   * Foreign key column
-   */
+ 
   @Index()
   @Column()
   user_id: string;
@@ -74,4 +72,7 @@ export class Client {
   @OneToOne(() => User, (user) => user.client_profile)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: User;
+
+  @OneToMany(() => Meeting, (meeting) => meeting.client)
+  meetings : Meeting[];
 }

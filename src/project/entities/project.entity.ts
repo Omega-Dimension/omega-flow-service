@@ -15,6 +15,7 @@ import { Timelog } from '../../timelog/entities/timelog.entity';
 import { Review } from '../../review/entities/review.entity';
 import { Contract } from '../../contract/entities/contract.entity';
 import { FreelancerProfile } from '../../freelancer-profile/entities/freelancer-profile.entity';
+import { Meeting } from '../../meeting/entities/meeting.entity';
 
 @Entity('project')
 export class Project {
@@ -82,5 +83,8 @@ export class Project {
 
   @ManyToOne(() => FreelancerProfile, (freelancer) => freelancer.projects)
   @JoinColumn({name : "freelancer_id", referencedColumnName : "id"})
-  freelancer : FreelancerProfile;
+  freelancer_profile : FreelancerProfile;
+
+  @OneToMany(() => Meeting, (meeting) => meeting.project)
+  meetings : Meeting[];
 }

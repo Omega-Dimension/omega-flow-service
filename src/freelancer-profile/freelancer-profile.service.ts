@@ -27,10 +27,7 @@ export class FreelancerProfileService {
     user_id: string,
     createFreelancerProfileDto: CreateFreelancerProfileDto,
   ) {
-    const exists = await this.freelancerProfileRepository.existsBy({ user_id });
-
-    if (exists) throwConflict('Freelancer profile already exists');
-
+    if(await this.freelancerProfileRepository.existsBy({user_id})) throwConflict('Freelancer profile already exists');
     return {
       success: !!(await this.freelancerProfileRepository.save(
         this.freelancerProfileRepository.create({

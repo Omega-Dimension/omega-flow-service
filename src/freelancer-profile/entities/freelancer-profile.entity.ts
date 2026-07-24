@@ -11,6 +11,7 @@ import {
 import { User } from '../../user/entities/user.entity';
 import { Project } from '../../project/entities/project.entity';
 import { Contract } from '../../contract/entities/contract.entity';
+import { Meeting } from '../../meeting/entities/meeting.entity';
 
 @Entity('freelancer_profile')
 export class FreelancerProfile {
@@ -87,9 +88,13 @@ export class FreelancerProfile {
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: User;
 
-  @OneToMany(() => Project, (project) => project.freelancer)
+  @OneToMany(() => Project, (project) => project.freelancer_profile)
   projects : Project[];
 
   @OneToMany(() => Contract, (contract) => contract.freelancer_profile)
   contracts : Contract[];
+
+  @OneToMany(() => Meeting, (meeting) => meeting.freelancer_profile)
+  meetings : Meeting[];
+
 }

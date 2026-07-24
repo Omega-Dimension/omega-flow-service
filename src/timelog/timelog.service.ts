@@ -28,12 +28,7 @@ export class TimelogService {
    * - create time log under user
    */
   async create(user_id: string, createTimelogDto: CreateTimelogDto) {
-    const projectExists = await this.projectRepository.existsBy({
-      id: createTimelogDto.project_id,
-    });
-
-    if (!projectExists) throwNotFound('Project not found');
-
+    if(!(await this.projectRepository.existsBy({id : createTimelogDto.project_id}))) throwNotFound("Project not found");
     return {
       success: !!(await this.timelogRepository.save(
         this.timelogRepository.create({

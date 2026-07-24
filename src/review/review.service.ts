@@ -33,14 +33,12 @@ export class ReviewService {
    * - create review under user
    */
   async create(user_id: string, createReviewDto: CreateReviewDto) {
-    const clientExists = await this.clientRepository.existsBy({
-      id: createReviewDto.client_id,
-    });
-    if (!clientExists) throwNotFound('Client not found');
+    const [clientExists, projectExists] = await Promise.all([
+      this.clientRepository.existsBy({ id: createReviewDto.client_id }),
+      this.projectRepository.existsBy({ id: createReviewDto.project_id }),
+    ]);
 
-    const projectExists = await this.projectRepository.existsBy({
-      id: createReviewDto.project_id,
-    });
+    if (!clientExists) throwNotFound('Client not found');
     if (!projectExists) throwNotFound('Project not found');
 
     return {

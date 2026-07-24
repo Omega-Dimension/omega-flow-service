@@ -28,12 +28,7 @@ export class MeetingService {
    * - create meeting under user
    */
   async create(user_id: string, createMeetingDto: CreateMeetingDto) {
-    const clientExists = await this.clientRepository.existsBy({
-      id: createMeetingDto.client_id,
-    });
-
-    if (!clientExists) throwNotFound('Client not found');
-
+    if(!(await this.clientRepository.existsBy({id : createMeetingDto.client_id}))) throwNotFound("Client not found")
     return {
       success: !!(await this.meetingRepository.save(
         this.meetingRepository.create({

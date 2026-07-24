@@ -30,13 +30,7 @@ export class UserService {
    * - create user
    */
   async create(createUserDto: CreateUserDto) {
-    if (
-      await this.userRepository.exists({
-        where: { email: createUserDto.email },
-      })
-    )
-      throwConflict('Email already exists');
-
+  if (await this.userRepository.existsBy({ email : createUserDto.email })) throwConflict('Email already exists');
     return {
       success: !!(await this.userRepository.save(
         this.userRepository.create({

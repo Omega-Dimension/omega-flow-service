@@ -14,6 +14,7 @@ import {
   paginationQueryHandler,
 } from '../libs/globalFunctions';
 
+
 @Injectable()
 export class ContractService {
   constructor(
@@ -33,24 +34,20 @@ export class ContractService {
    * - validate project
    * - create contract under user
    */
-  async create(user_id: string, createContractDto: CreateContractDto) {
-    const clientExits = await this.clientRepository.existsBy({
-      id: createContractDto.client_id,
-    });
+  async create(freelancer_id: string, createContractDto: CreateContractDto) {
+    const [clientExists, projectExists] = await Promise.all([
+      this.clientRepository.existsBy({id : createContractDto.client_id}),
+      this.projectRepository.existsBy({id : createContractDto.project_id})
+    ])
 
-    if (!clientExits) throwNotFound('Client not found');
-
-    const projectExits = await this.projectRepository.existsBy({
-      id: createContractDto.project_id,
-    });
-
-    if (!projectExits) throwNotFound('Project not found');
+    if (!clientExists) throwNotFound('Client not found');
+    if (!projectExists) throwNotFound('Project not found');
 
     return {
       success: !!(await this.contractRepository.save(
         this.contractRepository.create({
-          user_id,
-          ...CreateContractDto,
+          freelancer_id,
+          ...createContractDto,
         }),
       )),
     };
@@ -88,7 +85,7 @@ export class ContractService {
   async findOne(id: string) {
     const contract = await this.contractRepository.findOne({
       where: { id },
-      relations: { client: true, project: true, user: true },
+      relations: { client: true, project: true, freelancer_profile: true },
     });
 
     if (!contract) throwNotFound('Contract not found');

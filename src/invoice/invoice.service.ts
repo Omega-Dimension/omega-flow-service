@@ -32,11 +32,7 @@ export class InvoiceService {
    * - create invoice items
    */
   async create(user_id: string, createInvoiceDto: CreateInvoiceDto) {
-    const clientExists = await this.clientRepository.existsBy({
-      id: createInvoiceDto.client_id,
-    });
-    if (!clientExists) throwNotFound('Client not found');
-
+    if(!(await this.clientRepository.existsBy({id : createInvoiceDto.client_id}))) throwNotFound("Client not found");
     const subTotal = createInvoiceDto.invoice_items.reduce(
       (acc, item) => acc + item.quantity * item.unit_price,
       0,

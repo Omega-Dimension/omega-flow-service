@@ -10,6 +10,7 @@ import {
 import { User } from '../../user/entities/user.entity';
 import { Client } from '../../client/entities/client.entity';
 import { Project } from '../../project/entities/project.entity';
+import { FreelancerProfile } from '../../freelancer-profile/entities/freelancer-profile.entity';
 
 @Entity('meetings')
 export class Meeting {
@@ -58,9 +59,10 @@ export class Meeting {
   /**
    * Relations
    */
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  user: User;
+
+  @ManyToOne(() => FreelancerProfile, (freelancer_profile) => freelancer_profile.meetings)
+  @JoinColumn({name : "freelancer_id", referencedColumnName : "id"})
+  freelancer_profile : FreelancerProfile;
 
   @ManyToOne(() => Client, (client) => client.meetings)
   @JoinColumn({ name: 'client_id', referencedColumnName: 'id' })
@@ -70,7 +72,5 @@ export class Meeting {
   @JoinColumn({ name: 'project_id', referencedColumnName: 'id' })
   project?: Project;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'created_by', referencedColumnName: 'id' })
-  creator: User;
+
 }

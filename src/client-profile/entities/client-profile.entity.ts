@@ -40,7 +40,6 @@ export class ClientProfile {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updated_at: Date;
-
   /**
    * Relations
    */
