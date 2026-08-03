@@ -22,8 +22,17 @@ export class User {
   })
   email: string;
 
-  @Column()
-  password: string;
+  @Column({ nullable: true })
+  password?: string;
+
+  @Column({ nullable: true, type: 'enum', enum: ['freelancer', 'client'] })
+  default_workspace?: string;
+
+  @Column({ nullable: true, unique: true })
+  firebase_uid?: string;
+
+  @Column({ type: 'enum', enum: ['local', 'google'], default: 'local' })
+  provider: 'local' | 'google';
 
   @Column({
     default: true,

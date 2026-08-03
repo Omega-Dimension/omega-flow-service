@@ -30,7 +30,8 @@ export class UserService {
    * - create user
    */
   async create(createUserDto: CreateUserDto) {
-  if (await this.userRepository.existsBy({ email : createUserDto.email })) throwConflict('Email already exists');
+    if (await this.userRepository.existsBy({ email: createUserDto.email }))
+      throwConflict('Email already exists');
     return {
       success: !!(await this.userRepository.save(
         this.userRepository.create({
@@ -91,6 +92,16 @@ export class UserService {
     if (!affected) throwConflict('Update failed');
 
     return { success: true };
+  }
+
+  async updateDefaultWorkspace(id: string, workspace: 'freelancer' | 'client') {
+    const user = await this.findOne(id);
+    user.default_workspace = workspace;
+    await this.userRepository.save(user);
+    return {
+      success: true,
+      default_workspace: workspace,
+    };
   }
   /**
    * Use Case: Delete User

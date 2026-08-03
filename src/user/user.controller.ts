@@ -14,6 +14,9 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { GetUser } from '../auth/decorators/get-user.decorator';
+import type { JwtUser } from '../libs/interfaces/jwt-user.interface';
+import { UpdateDefaultWorkspaceDto } from './dto/update-workspace.dto';
 
 /**
  * User Controller
@@ -64,6 +67,14 @@ export class UserController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(id, updateUserDto);
+  }
+
+  @Patch('default-workspace')
+  updateDefaultWorkspace(
+    @GetUser() user: JwtUser,
+    @Body() dto: UpdateDefaultWorkspaceDto,
+  ) {
+    return this.userService.updateDefaultWorkspace(user.id, dto.workspace);
   }
 
   /**

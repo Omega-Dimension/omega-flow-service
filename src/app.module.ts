@@ -16,6 +16,7 @@ import { FreelancerProfileModule } from './freelancer-profile/freelancer-profile
 import { MeetingModule } from './meeting/meeting.module';
 import { PortfolioModule } from './portfolio/portfolio.module';
 import { ReviewModule } from './review/review.module';
+import { FirebaseModule } from './firebase/firebase.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -32,6 +33,7 @@ import { ReviewModule } from './review/review.module';
     MeetingModule,
     PortfolioModule,
     ReviewModule,
+    FirebaseModule,
   ],
   controllers: [AppController],
   providers: [AppService],

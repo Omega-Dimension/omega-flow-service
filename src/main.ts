@@ -120,7 +120,7 @@ async function bootstrap() {
    * Default:
    * - 3000 if PORT is not provided
    */
-  await app.listen(configService.get<number>('PORT') ?? 3000);
+  await app.listen(configService.get<number>('PORT') ?? 4000);
 
   /**
    * Application startup log
@@ -128,7 +128,7 @@ async function bootstrap() {
    * Useful for monitoring and deployment verification.
    */
   console.log(
-    `🚀 Server running on port ${configService.get<number>('PORT') ?? 3000}`,
+    `🚀 Server running on port ${configService.get<number>('PORT') ?? 4000}`,
   );
 }
 

@@ -7,6 +7,8 @@ import { ConfigService } from '@nestjs/config';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { throwConflict, throwUnauthorized } from '../libs/throwError';
 import { PasswordCheck, PasswordHash } from '../libs/globalFunctions';
+import { getAuth } from 'firebase-admin/auth';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -69,7 +71,14 @@ export class AuthService {
   }
 
   async login(user: User) {
-    return this.generateTokens(user);
+    return {
+      ...this.generateTokens(user),
+      user: {
+        id: user.id,
+        email: user.email,
+        default_workspace: user.default_workspace,
+      },
+    };
   }
 
   /**
@@ -83,11 +92,36 @@ export class AuthService {
       where: { email },
     });
 
-    if (!user || !(await PasswordCheck(password, user.password))) {
+    if (
+      !user ||
+      !user.password ||
+      !(await PasswordCheck(password, user.password))
+    ) {
       throwUnauthorized('Invalid email or password');
     }
 
     return user;
+  }
+
+  async loginWithFirebase(id_token: string) {
+    const decoded = await getAuth().verifyIdToken(id_token);
+    const { email, uid } = decoded;
+    if (!email) throwUnauthorized('Google acc has no email');
+    let user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      user = this.userRepository.create({
+        email,
+        firebase_uid: uid,
+        provider: 'google',
+        is_active: true,
+      });
+      await this.userRepository.save(user);
+    } else if (!user.firebase_uid) {
+      // account existed via email/password, now also linked to google
+      user.firebase_uid = uid;
+      await this.userRepository.save(user);
+    }
+    return this.login(user);
   }
 
   /**
@@ -101,12 +135,7 @@ export class AuthService {
       where: {
         id: userId,
       },
-      select: [
-        'id',
-        'email',
-        'created_at',
-        'updated_at',
-      ],
+      select: ['id', 'email', 'created_at', 'updated_at'],
     });
 
     if (!user) {
