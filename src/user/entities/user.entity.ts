@@ -9,10 +9,18 @@ import {
 } from 'typeorm';
 import { FreelancerProfile } from '../../freelancer-profile/entities/freelancer-profile.entity';
 import { ClientProfile } from '../../client-profile/entities/client-profile.entity';
+import { WorkspaceType } from '../../libs/interfaces/workspace';
+
 @Entity('user')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column({
+    type: 'varchar',
+    length: 100,
+  })
+  name: string;
 
   @Index()
   @Column({
@@ -26,7 +34,7 @@ export class User {
   password?: string;
 
   @Column({ nullable: true, type: 'enum', enum: ['freelancer', 'client'] })
-  default_workspace?: string;
+  default_workspace?: WorkspaceType;
 
   @Column({ nullable: true, unique: true })
   firebase_uid?: string;

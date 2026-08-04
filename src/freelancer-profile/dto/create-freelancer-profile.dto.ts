@@ -10,10 +10,6 @@ import {
 } from 'class-validator';
 
 export class CreateFreelancerProfileDto {
-  @IsString()
-  @Length(2, 150)
-  name: string;
-
   @IsOptional()
   @IsString()
   profile_image?: string;

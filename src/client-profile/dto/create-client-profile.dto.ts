@@ -1,10 +1,6 @@
 import { IsOptional, IsString, IsUrl, Length } from 'class-validator';
 
 export class CreateClientProfileDto {
-  @IsString()
-  @Length(2, 150)
-  name: string;
-
   @IsOptional()
   @IsString()
   company_name?: string;

@@ -1,33 +1,22 @@
 import {
   IsEmail,
-  IsOptional,
   IsString,
   Length,
-  Matches,
+  MinLength,
 } from 'class-validator';
 
 export class CreateUserDto {
+ @IsString()
+  @Length(2, 100)
+  name: string;
+
   @IsEmail()
   email: string;
 
   @IsString()
-  @Length(8, 50)
+  @Length(6, 50)
+  @MinLength(6, {
+    message : "Password must be at least 6 characters"
+  })
   password: string;
-
-  @IsOptional()
-  @IsString()
-  @Length(2, 150)
-  company_name?: string;
-
-  @IsOptional()
-  @IsString()
-  company_address?: string;
-
-  @IsOptional()
-  @IsString()
-  logo_url?: string;
-
-  @IsOptional()
-  @Matches(/^[A-Z]{3}$/)
-  default_currency?: string;
 }

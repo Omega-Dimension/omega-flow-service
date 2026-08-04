@@ -21,9 +21,6 @@ export class FreelancerProfile {
   @Column({ type: 'uuid', unique: true })
   user_id: string;
 
-  @Column({ type: 'varchar', length: 150 })
-  name: string;
-
   @Column({ type: 'text', nullable: true })
   profile_image?: string;
 

@@ -1,9 +1,5 @@
 import { IsEnum } from "class-validator";
-
-export enum WorkspaceType {
-  FREELANCER = "freelancer",
-  CLIENT = "client",
-}
+import { WorkspaceType } from "../../libs/interfaces/workspace";
 
 export class UpdateDefaultWorkspaceDto {
   @IsEnum(WorkspaceType)

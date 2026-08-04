@@ -17,9 +17,6 @@ export class ClientProfile {
   @Column({ type: 'uuid', unique: true })
   user_id: string;
 
-  @Column({ type: 'varchar', length: 150 })
-  name: string;
-
   @Column({ type: 'varchar', length: 150, nullable: true })
   company_name?: string;
 

@@ -9,6 +9,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -17,6 +18,7 @@ import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import type { JwtUser } from '../libs/interfaces/jwt-user.interface';
 import { UpdateDefaultWorkspaceDto } from './dto/update-workspace.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 /**
  * User Controller
@@ -27,6 +29,7 @@ import { UpdateDefaultWorkspaceDto } from './dto/update-workspace.dto';
  */
 
 @Controller('users')
+@UseGuards(JwtAuthGuard)
 export class UserController {
   constructor(
     /**
@@ -60,6 +63,14 @@ export class UserController {
     return this.userService.findOne(id);
   }
 
+  @Patch('default-workspace')
+  updateDefaultWorkspace(
+    @GetUser() user: JwtUser,
+    @Body() dto: UpdateDefaultWorkspaceDto,
+  ) {
+    return this.userService.updateDefaultWorkspace(user.id, dto.workspace);
+  }
+
   /**
    * Update user by ID
    * PATCH /users/:id
@@ -69,13 +80,7 @@ export class UserController {
     return this.userService.update(id, updateUserDto);
   }
 
-  @Patch('default-workspace')
-  updateDefaultWorkspace(
-    @GetUser() user: JwtUser,
-    @Body() dto: UpdateDefaultWorkspaceDto,
-  ) {
-    return this.userService.updateDefaultWorkspace(user.id, dto.workspace);
-  }
+ 
 
   /**
    * Delete user by ID

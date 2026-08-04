@@ -75,6 +75,7 @@ export class AuthService {
       ...this.generateTokens(user),
       user: {
         id: user.id,
+        name : user.name,
         email: user.email,
         default_workspace: user.default_workspace,
       },

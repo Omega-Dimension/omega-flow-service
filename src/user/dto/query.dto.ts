@@ -7,8 +7,4 @@ export class UserQueryDto extends PaginationQueryDto {
   @IsString()
   email?: string;
 
-  @IsOptional()
-  @IsString()
-  company_name?: string;
-
 }

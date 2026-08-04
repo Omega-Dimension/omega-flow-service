@@ -12,6 +12,7 @@ import {
 } from '../libs/globalFunctions';
 import { ConfigService } from '@nestjs/config';
 import { UserQueryDto } from './dto/query.dto';
+import { WorkspaceType } from '../libs/interfaces/workspace';
 @Injectable()
 export class UserService {
   constructor(
@@ -51,11 +52,10 @@ export class UserService {
    * - return paginated result
    */
   async findAll(query: UserQueryDto) {
-    const { page_number, per_page, email, company_name } = query;
+    const { page_number, per_page, email } = query;
     const [data, total] = await this.userRepository.findAndCount({
       where: {
         ...(email && { email: ILike(`%${email}%`) }),
-        ...(company_name && { company_name: ILike(`%${company_name}%`) }),
       },
       ...paginationQueryHandler(query),
       order: {
@@ -94,7 +94,7 @@ export class UserService {
     return { success: true };
   }
 
-  async updateDefaultWorkspace(id: string, workspace: 'freelancer' | 'client') {
+  async updateDefaultWorkspace(id: string, workspace: WorkspaceType) {
     const user = await this.findOne(id);
     user.default_workspace = workspace;
     await this.userRepository.save(user);
