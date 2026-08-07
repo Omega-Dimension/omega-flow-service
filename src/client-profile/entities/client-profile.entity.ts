@@ -40,7 +40,7 @@ export class ClientProfile {
   /**
    * Relations
    */
-  @OneToOne(() => User)
+  @OneToOne(() => User, (user) => user.client_profile)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: User; 
 }

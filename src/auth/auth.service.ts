@@ -78,6 +78,8 @@ export class AuthService {
         name : user.name,
         email: user.email,
         default_workspace: user.default_workspace,
+        freelancer_profile_id : user.freelancer_profile?.id ?? null,
+        client_profile_id : user.client_profile?.id ?? null
       },
     };
   }
@@ -91,6 +93,10 @@ export class AuthService {
   async validateUser(email: string, password: string) {
     const user = await this.userRepository.findOne({
       where: { email },
+      relations : {
+        freelancer_profile : true,
+        client_profile : true
+      }
     });
 
     if (

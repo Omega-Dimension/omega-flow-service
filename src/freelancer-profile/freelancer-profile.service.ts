@@ -27,14 +27,19 @@ export class FreelancerProfileService {
     user_id: string,
     createFreelancerProfileDto: CreateFreelancerProfileDto,
   ) {
-    if(await this.freelancerProfileRepository.existsBy({user_id})) throwConflict('Freelancer profile already exists');
+    if (await this.freelancerProfileRepository.existsBy({ user_id }))
+      throwConflict('Freelancer profile already exists');
+
+    const profile = await this.freelancerProfileRepository.save(
+      this.freelancerProfileRepository.create({
+        user_id,
+        ...createFreelancerProfileDto,
+      }),
+    );
+
     return {
-      success: !!(await this.freelancerProfileRepository.save(
-        this.freelancerProfileRepository.create({
-          user_id,
-          ...createFreelancerProfileDto,
-        }),
-      )),
+      success : true,
+      data: profile,
     };
   }
 

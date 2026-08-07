@@ -27,14 +27,18 @@ export class ClientProfileService {
     user_id: string,
     createClientProfileDto: CreateClientProfileDto,
   ) {
-    if (await this.clientProfileRepository.existsBy({ user_id })) throwConflict('Client profile already exists');
+    if (await this.clientProfileRepository.existsBy({ user_id }))
+      throwConflict('Client profile already exists');
+
+    const profile = await this.clientProfileRepository.save(
+      this.clientProfileRepository.create({
+        user_id,
+        ...createClientProfileDto,
+      }),
+    );
     return {
-      success: !!(await this.clientProfileRepository.save(
-        this.clientProfileRepository.create({
-          user_id,
-          ...createClientProfileDto,
-        }),
-      )),
+      success: true,
+      data: profile,
     };
   }
 
