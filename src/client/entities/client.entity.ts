@@ -5,6 +5,7 @@ import {
   Entity,
   Index,
   JoinColumn,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -16,6 +17,8 @@ import { Invoice } from '../../invoice/entities/invoice.entity';
 import { Review } from '../../review/entities/review.entity';
 import { Contract } from '../../contract/entities/contract.entity';
 import { Meeting } from '../../meeting/entities/meeting.entity';
+import { ClientProfile } from '../../client-profile/entities/client-profile.entity';
+import { FreelancerProfile } from '../../freelancer-profile/entities/freelancer-profile.entity';
 
 @Entity('client')
 export class Client {
@@ -23,8 +26,12 @@ export class Client {
   id: string;
  
   @Index()
-  @Column()
-  user_id: string;
+  @Column({name : "freelancer_profile_id", type : "uuid"})
+  freelancer_profile_id: string;
+
+  @Index()
+  @Column({name : "client_profile_id", type : "uuid", nullable : true})
+  client_profile_id?: string;
 
   @Column({ type: 'varchar', length: 150 })
   name: string;
@@ -57,6 +64,34 @@ export class Client {
    * Relations
    */
 
+   @ManyToOne(
+    () => FreelancerProfile,
+    (freelancer) => freelancer.clients,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
+  @JoinColumn({
+    name: 'freelancer_profile_id',
+    referencedColumnName: 'id',
+  })
+  freelancer_profile: FreelancerProfile;
+
+    // Optional registered client account
+  @ManyToOne(
+    () => ClientProfile,
+    (clientProfile) => clientProfile.clients,
+    {
+      nullable: true,
+      onDelete: 'SET NULL',
+    },
+  )
+  @JoinColumn({
+    name: 'client_profile_id',
+    referencedColumnName: 'id',
+  })
+  client_profile?: ClientProfile;
+
   @OneToMany(() => Contract, (contract) => contract.client)
   contracts: Contract[];
 
@@ -68,10 +103,6 @@ export class Client {
 
   @OneToMany(() => Invoice, (invoice) => invoice.client)
   invoices: Invoice[];
-
-  @OneToOne(() => User, (user) => user.client_profile)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  user: User;
 
   @OneToMany(() => Meeting, (meeting) => meeting.client)
   meetings : Meeting[];

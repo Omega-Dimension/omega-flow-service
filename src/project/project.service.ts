@@ -26,12 +26,12 @@ export class ProjectService {
    * - validate client
    * - create project under user
    */
-  async create(freelancer_id: string, createProjectDto: CreateProjectDto) {
+  async create(freelancer_profile_id: string, createProjectDto: CreateProjectDto) {
   if (!(await this.clientRepository.existsBy({ id: createProjectDto.client_id }))) throwNotFound('Client not found');
     return {
       success: !!(await this.projectRepository.save(
         this.projectRepository.create({
-          freelancer_id,
+          freelancer_profile_id,
           ...createProjectDto,
         }),
       )),

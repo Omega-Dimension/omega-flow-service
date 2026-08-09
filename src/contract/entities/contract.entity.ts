@@ -17,7 +17,7 @@ export class Contract {
   id: string;
 
   @Column({ type: 'uuid' })
-  freelancer_id: string;
+  freelancer_profile_id: string;
 
   @Column({ type: 'uuid' })
   client_id: string;
@@ -73,7 +73,7 @@ export class Contract {
    * Relations
    */
   @ManyToOne(() => FreelancerProfile, (freelancer_profile) => freelancer_profile.contracts)
-  @JoinColumn({ name: 'freelancer_id', referencedColumnName: 'id' })
+  @JoinColumn({ name: 'freelancer_profile_id', referencedColumnName: 'id' })
   freelancer_profile: FreelancerProfile;
 
   @ManyToOne(() => Client, (client) => client.contracts)

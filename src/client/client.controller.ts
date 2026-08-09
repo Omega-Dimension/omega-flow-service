@@ -15,6 +15,7 @@
   import { CreateClientDto } from './dto/create-client.dto';
   import { UpdateClientDto } from './dto/update-client.dto';
   import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { GetUser } from '../auth/decorators/get-user.decorator';
 
   /**
    * Client Controller
@@ -38,22 +39,26 @@
      * Create new client
      * POST /clients/:user_id
      */
-    @Post(':user_id')
-    @HttpCode(HttpStatus.CREATED)
-    create(
-      @Param('user_id') user_id: string,
-      @Body() createClientDto: CreateClientDto,
-    ) {
-      return this.clientService.create(user_id, createClientDto);
-    }
+   @Post()
+@HttpCode(HttpStatus.CREATED)
+create(
+  @GetUser('id') user_id: string,
+  @Body() createClientDto: CreateClientDto,
+) {
+  return this.clientService.create(user_id, createClientDto);
+}
 
     /**
      * Get all clients
      * GET /clients
      */
     @Get()
-    findAll(@Query() query: PaginationQueryDto) {
-      return this.clientService.findAll(query);
+    findAll(
+      @GetUser('id') user_id : string,
+      @Query() query: PaginationQueryDto
+    ) 
+      {
+      return this.clientService.findAll(user_id, query);
     }
 
     /**

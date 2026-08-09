@@ -34,7 +34,7 @@ export class ContractService {
    * - validate project
    * - create contract under user
    */
-  async create(freelancer_id: string, createContractDto: CreateContractDto) {
+  async create(freelancer_profile_id: string, createContractDto: CreateContractDto) {
     const [clientExists, projectExists] = await Promise.all([
       this.clientRepository.existsBy({id : createContractDto.client_id}),
       this.projectRepository.existsBy({id : createContractDto.project_id})
@@ -46,7 +46,7 @@ export class ContractService {
     return {
       success: !!(await this.contractRepository.save(
         this.contractRepository.create({
-          freelancer_id,
+          freelancer_profile_id,
           ...createContractDto,
         }),
       )),

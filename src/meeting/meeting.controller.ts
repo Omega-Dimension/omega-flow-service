@@ -11,9 +11,11 @@ import {
   Query,
 } from '@nestjs/common';
 import { MeetingService } from './meeting.service';
-import { CreateMeetingDto } from './dto/create-meeting.dto';
+import { CreateMeetingByClientDto, CreateMeetingByFreelancerDto, CreateMeetingDto } from './dto/create-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-meeting.dto';
 import { MeetingQueryDto } from './dto/query.dto';
+import { GetUser } from '../auth/decorators/get-user.decorator';
+import { User } from '../user/entities/user.entity';
 
 /**
  * Meeting Controller
@@ -25,18 +27,62 @@ import { MeetingQueryDto } from './dto/query.dto';
 export class MeetingController {
   constructor(private readonly meetingService: MeetingService) {}
 
-  /**
-   * Create meeting
-   * POST /meetings/:user_id
-   */
-  @Post(':user_id')
+  
+  @Post('freelancer')
   @HttpCode(HttpStatus.CREATED)
-  create(
-    @Param('user_id') user_id: string,
-    @Body() createMeetingDto: CreateMeetingDto,
+  createByFreelancer(
+    @GetUser() user: User,
+    @Body() dto: CreateMeetingByFreelancerDto,
   ) {
-    return this.meetingService.create(user_id, createMeetingDto);
+    return this.meetingService.createByFreelancer(
+      user.id,
+      dto,
+    );
   }
+
+  @Post('client')
+  @HttpCode(HttpStatus.CREATED)
+  createByClient(
+    @GetUser() user: User,
+    @Body() dto: CreateMeetingByClientDto,
+  ) {
+    return this.meetingService.createByClient(
+      user.id,
+      dto,
+    );
+  }
+
+
+   /**
+   * Get meetings for current freelancer
+   * GET /meetings/freelancer
+   */
+  @Get('freelancer')
+  findByFreelancer(
+    @GetUser() user: { id: string },
+    @Query() query: MeetingQueryDto,
+  ) {
+    return this.meetingService.findByFreelancer(
+      user.id,
+      query,
+    );
+  }
+
+    /**
+   * Get meetings for current client
+   * GET /meetings/client
+   */
+  @Get('client')
+  findByClient(
+    @GetUser() user: { id: string },
+    @Query() query: MeetingQueryDto,
+  ) {
+    return this.meetingService.findByClient(
+      user.id,
+      query,
+    );
+  }
+
 
   /**
    * Get all meetings
@@ -46,6 +92,8 @@ export class MeetingController {
   findAll(@Query() query: MeetingQueryDto) {
     return this.meetingService.findAll(query);
   }
+
+
 
   /**
    * Get single meeting

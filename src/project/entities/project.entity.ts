@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -22,9 +23,11 @@ export class Project {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Index()
   @Column({ type: 'uuid' })
-  freelancer_id: string;
+  freelancer_profile_id: string;
 
+  @Index()
   @Column({ type: 'uuid' })
   client_id: string;
 
@@ -82,7 +85,7 @@ export class Project {
   contracts: Contract[];
 
   @ManyToOne(() => FreelancerProfile, (freelancer) => freelancer.projects)
-  @JoinColumn({name : "freelancer_id", referencedColumnName : "id"})
+  @JoinColumn({name : "freelancer_profile_id", referencedColumnName : "id"})
   freelancer_profile : FreelancerProfile;
 
   @OneToMany(() => Meeting, (meeting) => meeting.project)

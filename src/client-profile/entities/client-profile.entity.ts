@@ -3,11 +3,13 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
+import { Client } from '../../client/entities/client.entity';
 
 @Entity('client_profile')
 export class ClientProfile {
@@ -43,4 +45,8 @@ export class ClientProfile {
   @OneToOne(() => User, (user) => user.client_profile)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: User; 
+
+  @OneToMany(() => Client, (client) => client.client_profile)
+  clients : Client[];
+  
 }

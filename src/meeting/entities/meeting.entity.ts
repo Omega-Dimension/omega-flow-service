@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -17,9 +18,11 @@ export class Meeting {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Index()
   @Column({ type: 'uuid' })
-  user_id: string;
+  freelancer_profile_id: string;
 
+  @Index()
   @Column({ type: 'uuid' })
   client_id: string;
 
@@ -47,6 +50,7 @@ export class Meeting {
   @Column({ type: 'varchar', length: 30, default: 'scheduled' })
   status: string;
 
+  @Index()
   @Column({ type: 'uuid' })
   created_by: string;
 
@@ -61,7 +65,7 @@ export class Meeting {
    */
 
   @ManyToOne(() => FreelancerProfile, (freelancer_profile) => freelancer_profile.meetings)
-  @JoinColumn({name : "freelancer_id", referencedColumnName : "id"})
+  @JoinColumn({name : "freelancer_profile_id", referencedColumnName : "id"})
   freelancer_profile : FreelancerProfile;
 
   @ManyToOne(() => Client, (client) => client.meetings)

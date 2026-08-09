@@ -11,6 +11,7 @@ import {
   paginationQueryHandler,
 } from '../libs/globalFunctions';
 import { ClientQueryDto } from './dto/query.dto';
+import { FreelancerProfile } from '../freelancer-profile/entities/freelancer-profile.entity';
 
 @Injectable()
 export class ClientService {
@@ -20,6 +21,9 @@ export class ClientService {
      */
     @InjectRepository(Client)
     private readonly clientRepository: Repository<Client>,
+
+    @InjectRepository(FreelancerProfile)
+    private readonly freelancerProfileRepository: Repository<FreelancerProfile>,
   ) {}
 
   /**
@@ -28,24 +32,37 @@ export class ClientService {
    * - create client under user
    */
   async create(user_id: string, createClientDto: CreateClientDto) {
+    const freelancerProfile = await this.freelancerProfileRepository.findOne({
+      where: {
+        user_id,
+      },
+    });
+
+    if (!freelancerProfile) {
+      throwNotFound('Freelancer profile not found');
+    }
+
     if (
       createClientDto.email &&
       (await this.clientRepository.exists({
         where: {
           email: createClientDto.email,
+          freelancer_profile_id: freelancerProfile.id,
         },
       }))
     ) {
       throwConflict('Email already exists');
     }
 
+    const client = this.clientRepository.create({
+      freelancer_profile_id: freelancerProfile.id,
+      ...createClientDto,
+    });
+
+    await this.clientRepository.save(client);
+
     return {
-      success: !!(await this.clientRepository.save(
-        this.clientRepository.create({
-          user_id,
-          ...createClientDto,
-        }),
-      )),
+      success: true,
     };
   }
 
@@ -55,11 +72,16 @@ export class ClientService {
    * - filter by company/country
    * - return paginated result
    */
-  async findAll(query: ClientQueryDto) {
+  async findAll(user_id: string, query: ClientQueryDto) {
     const { page_number, per_page, company, country } = query;
+
+    const freelancerProfile = await this.freelancerProfileRepository.findOne({
+      where: { user_id },
+    });
 
     const [data, total] = await this.clientRepository.findAndCount({
       where: {
+        freelancer_profile_id: freelancerProfile?.id,
         ...(company && { company: ILike(`%${company}%`) }),
         ...(country && { country }),
       },
