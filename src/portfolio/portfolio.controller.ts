@@ -29,13 +29,13 @@ export class PortfolioController {
    * Create portfolio item
    * POST /portfolios/:user_id
    */
-  @Post(':user_id')
+  @Post(':freelancer_profile_id')
   @HttpCode(HttpStatus.CREATED)
   create(
-    @Param('user_id') user_id: string,
+    @Param('freelancer_profile_id') freelancer_profile_id: string,
     @Body() createPortfolioDto: CreatePortfolioDto,
   ) {
-    return this.portfolioService.create(user_id, createPortfolioDto);
+    return this.portfolioService.create(freelancer_profile_id, createPortfolioDto);
   }
 
   /**

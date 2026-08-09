@@ -22,11 +22,11 @@ export class PortfolioService {
    * Use Case: Create Portfolio Item
    * - create portfolio entry under user
    */
-  async create(user_id: string, createPortfolioDto: CreatePortfolioDto) {
+  async create(freelancer_profile_id: string, createPortfolioDto: CreatePortfolioDto) {
     return {
       success: !!(await this.portfolioRepository.save(
         this.portfolioRepository.create({
-          user_id,
+          freelancer_profile_id,
           ...createPortfolioDto,
         }),
       )),
@@ -39,11 +39,11 @@ export class PortfolioService {
    * - filter by user
    */
   async findAll(query: PortfolioQueryDto) {
-    const { page_number, per_page, user_id } = query;
+    const { page_number, per_page, freelancer_profile_id } = query;
 
     const [data, total] = await this.portfolioRepository.findAndCount({
       where: {
-        ...(user_id && { user_id }),
+        ...(freelancer_profile_id && { freelancer_profile_id }),
       },
       ...paginationQueryHandler(query),
       order: {
@@ -61,7 +61,7 @@ export class PortfolioService {
   async findOne(id: string) {
     const portfolio = await this.portfolioRepository.findOne({
       where: { id },
-      relations: { user: true },
+      relations: { freelancer_profile: true },
     });
     if (!portfolio) throwNotFound('Portfolio item not found');
     return portfolio;

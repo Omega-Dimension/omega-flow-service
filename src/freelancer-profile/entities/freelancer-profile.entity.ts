@@ -13,6 +13,7 @@ import { Project } from '../../project/entities/project.entity';
 import { Contract } from '../../contract/entities/contract.entity';
 import { Meeting } from '../../meeting/entities/meeting.entity';
 import { Client } from '../../client/entities/client.entity';
+import { Portfolio } from '../../portfolio/entities/portfolio.entity';
 
 @Entity('freelancer_profile')
 export class FreelancerProfile {
@@ -99,5 +100,8 @@ export class FreelancerProfile {
 
   @OneToMany(() => Meeting, (meeting) => meeting.freelancer_profile)
   meetings : Meeting[];
+
+  @OneToMany(() => Portfolio, (portfolio) => portfolio.freelancer_profile)
+  portfolios : Portfolio[];
 
 }

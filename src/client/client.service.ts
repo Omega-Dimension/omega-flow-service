@@ -5,7 +5,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Client } from './entities/client.entity';
 import { ILike, Repository } from 'typeorm';
 import { throwConflict, throwNotFound } from '../libs/throwError';
-import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import {
   paginationHandler,
   paginationQueryHandler,
@@ -79,9 +78,13 @@ export class ClientService {
       where: { user_id },
     });
 
+    if (!freelancerProfile) {
+      throwNotFound('Freelancer profile not found');
+    }
+
     const [data, total] = await this.clientRepository.findAndCount({
       where: {
-        freelancer_profile_id: freelancerProfile?.id,
+        freelancer_profile_id: freelancerProfile.id,
         ...(company && { company: ILike(`%${company}%`) }),
         ...(country && { country }),
       },

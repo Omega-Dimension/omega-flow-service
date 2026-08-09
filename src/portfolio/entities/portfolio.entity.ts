@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../user/entities/user.entity';
+import { FreelancerProfile } from '../../freelancer-profile/entities/freelancer-profile.entity';
 
 @Entity('portfolios')
 export class Portfolio {
@@ -15,7 +15,7 @@ export class Portfolio {
   id: string;
 
   @Column({ type: 'uuid' })
-  user_id: string;
+  freelancer_profile_id: string;
 
   @Column({ type: 'varchar', length: 200 })
   title: string;
@@ -44,7 +44,10 @@ export class Portfolio {
   /**
    * Relations
    */
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  user: User;
+  @ManyToOne(
+    () => FreelancerProfile,
+    (freelancer_profile) => freelancer_profile.portfolios,
+  )
+  @JoinColumn({ name: 'freelancer_profile_id', referencedColumnName: 'id' })
+  freelancer_profile: FreelancerProfile;
 }

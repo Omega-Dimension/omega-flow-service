@@ -17,6 +17,7 @@ import { MeetingModule } from './meeting/meeting.module';
 import { PortfolioModule } from './portfolio/portfolio.module';
 import { ReviewModule } from './review/review.module';
 import { FirebaseModule } from './firebase/firebase.module';
+import { CountryModule } from './common/country/country.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -34,6 +35,7 @@ import { FirebaseModule } from './firebase/firebase.module';
     PortfolioModule,
     ReviewModule,
     FirebaseModule,
+    CountryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
