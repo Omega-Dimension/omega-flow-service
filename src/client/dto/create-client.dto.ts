@@ -8,7 +8,7 @@ export class CreateClientDto {
   @IsOptional()
   @IsString()
   @Length(2, 150)
-  company?: string;
+  company_name?: string;
 
   @IsOptional()
   @IsEmail()

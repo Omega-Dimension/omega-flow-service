@@ -9,11 +9,13 @@ import {
   HttpStatus,
   HttpCode,
   Query,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { PortfolioService } from './portfolio.service';
 import { CreatePortfolioDto } from './dto/create-portfolio.dto';
 import { UpdatePortfolioDto } from './dto/update-portfolio.dto';
 import { PortfolioQueryDto } from './dto/query.dto';
+import { throwBadRequest } from '../libs/throwError';
 
 /**
  * Portfolio Controller
@@ -32,10 +34,20 @@ export class PortfolioController {
   @Post(':freelancer_profile_id')
   @HttpCode(HttpStatus.CREATED)
   create(
-    @Param('freelancer_profile_id') freelancer_profile_id: string,
+    @Param(
+      'freelancer_profile_id',
+      new ParseUUIDPipe({
+        exceptionFactory: () =>
+          throwBadRequest('Freelancer profile ID must be a valid UUID'),
+      }),
+    )
+    freelancer_profile_id: string,
     @Body() createPortfolioDto: CreatePortfolioDto,
   ) {
-    return this.portfolioService.create(freelancer_profile_id, createPortfolioDto);
+    return this.portfolioService.create(
+      freelancer_profile_id,
+      createPortfolioDto,
+    );
   }
 
   /**

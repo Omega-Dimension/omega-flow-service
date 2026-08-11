@@ -4,7 +4,7 @@ import { PaginationQueryDto } from "../../common/dto/pagination-query.dto";
 export class ClientQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsString()
-  company?: string;
+  company_name?: string;
 
   @IsOptional()
   @IsString()

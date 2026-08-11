@@ -14,6 +14,7 @@ import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectQueryDto } from './dto/query.dto';
+import { GetUser } from '../auth/decorators/get-user.decorator';
 
 /**
  * Project Controller
@@ -29,10 +30,10 @@ export class ProjectController {
    * Create project
    * POST /projects/:user_id
    */
-  @Post(':user_id')
+  @Post()
   @HttpCode(HttpStatus.CREATED)
   create(
-    @Param('user_id') user_id: string,
+    @GetUser('id') user_id: string,
     @Body() createProjectDto: CreateProjectDto,
   ) {
     return this.projectService.create(user_id, createProjectDto);

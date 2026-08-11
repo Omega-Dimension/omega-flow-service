@@ -37,7 +37,7 @@ export class Client {
   name: string;
 
   @Column({ type: 'varchar', length: 150, nullable: true })
-  company?: string;
+  company_name?: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   email?: string;

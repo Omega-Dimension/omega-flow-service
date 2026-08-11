@@ -9,11 +9,13 @@ import {
   HttpStatus,
   HttpCode,
   Query,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ClientProfileService } from './client-profile.service';
 import { CreateClientProfileDto } from './dto/create-client-profile.dto';
 import { UpdateClientProfileDto } from './dto/update-client-profile.dto';
 import { ClientProfileQueryDto } from './dto/query.dto';
+import { throwBadRequest } from '../libs/throwError';
 
 /**
  * Client Profile Controller
@@ -32,7 +34,13 @@ export class ClientProfileController {
   @Post(':user_id')
   @HttpCode(HttpStatus.CREATED)
   create(
-    @Param('user_id') user_id: string,
+    @Param(
+      'user_id',
+      new ParseUUIDPipe({
+        exceptionFactory: () => throwBadRequest('User ID must be a valid UUID'),
+      }),
+    )
+    user_id: string,
     @Body() createClientProfileDto: CreateClientProfileDto,
   ) {
     return this.clientProfileService.create(user_id, createClientProfileDto);

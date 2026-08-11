@@ -39,8 +39,10 @@ export class MeetingService {
   ) {}
 
   async createByFreelancer(user_id: string, dto: CreateMeetingByFreelancerDto) {
+
+
     const freelancer = await this.freelancerProfileRepository.findOne({
-      where: { user_id },
+      where: { user_id : user_id },
     });
 
     if (!freelancer) {
@@ -146,33 +148,98 @@ export class MeetingService {
     return paginationHandler(data, total, page_number, per_page);
   }
 
-  async findByFreelancer(user_id: string, query: MeetingQueryDto) {
-    const {client_id, project_id, status, page_number, per_page} = query;
+  // async findByFreelancer(user_id: string, query: MeetingQueryDto) {
+  //   const {client_id, project_id, status, page_number, per_page} = query;
+  //   const freelancer = await this.freelancerProfileRepository.findOne({
+  //     where: { user_id },
+  //   });
+  //   if (!freelancer) {
+  //     throwNotFound('Freelancer profile not found');
+  //   }
+  //   const [data, total] = await this.meetingRepository.findAndCount({
+  //     where: {
+  //       freelancer_profile_id: freelancer.id,
+  //       ...(client_id && {client_id}),
+  //       ...(project_id && {project_id}),
+  //       ...(status && {status})
+  //     },
+  //     relations: {
+  //       client: true,
+  //       project: true,
+  //     },
+  //     ...paginationQueryHandler(query),
+
+  //     order: {
+  //       scheduled_at: 'ASC',
+  //     },
+  //   });
+  //   return paginationHandler(data, total, page_number, per_page);
+  // }
+
+  async findByFreelancer(
+  user_id: string,
+  query: MeetingQueryDto,
+) {
+
+  try {
+    const {
+      client_id,
+      project_id,
+      status,
+      page_number,
+      per_page,
+    } = query;
+
+
     const freelancer = await this.freelancerProfileRepository.findOne({
       where: { user_id },
     });
+
+  
+
     if (!freelancer) {
       throwNotFound('Freelancer profile not found');
     }
+
+
+    const where = {
+      freelancer_profile_id: freelancer.id,
+      ...(client_id && { client_id }),
+      ...(project_id && { project_id }),
+      ...(status && { status }),
+    };
+
+
+    const pagination = paginationQueryHandler(query);
+
+
     const [data, total] = await this.meetingRepository.findAndCount({
-      where: {
-        freelancer_profile_id: freelancer.id,
-        ...(client_id && {client_id}),
-        ...(project_id && {project_id}),
-        ...(status && {status})
-      },
+      where,
       relations: {
         client: true,
         project: true,
       },
-      ...paginationQueryHandler(query),
-
+      ...pagination,
       order: {
         scheduled_at: 'ASC',
       },
     });
-    return paginationHandler(data, total, page_number, per_page);
+
+
+    return paginationHandler(
+      data,
+      total,
+      page_number,
+      per_page,
+    );
+  } catch (error) {
+    console.error("========== FIND FREELANCER MEETINGS ERROR ==========");
+    console.error(error);
+    console.error("====================================================");
+
+    throw error;
   }
+}
 
   async findByClient(user_id: string, query: MeetingQueryDto) {
     const clientProfile = await this.clientProfileRepository.findOne({

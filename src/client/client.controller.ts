@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 
 import { ClientService } from './client.service';
@@ -16,6 +17,8 @@ import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { GetUser } from '../auth/decorators/get-user.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import type { JwtUser } from '../libs/interfaces/jwt-user.interface';
 
 /**
  * Client Controller
@@ -27,6 +30,7 @@ import { GetUser } from '../auth/decorators/get-user.decorator';
  */
 
 @Controller('clients')
+@UseGuards(JwtAuthGuard)
 export class ClientController {
   constructor(
     /**
@@ -42,10 +46,10 @@ export class ClientController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   create(
-    @GetUser('id') user_id: string,
+    @GetUser() user: JwtUser,
     @Body() createClientDto: CreateClientDto,
   ) {
-    return this.clientService.create(user_id, createClientDto);
+    return this.clientService.create(user.id, createClientDto);
   }
 
   /**
@@ -53,8 +57,8 @@ export class ClientController {
    * GET /clients
    */
   @Get()
-  findAll(@GetUser('id') user_id: string, @Query() query: PaginationQueryDto) {
-    return this.clientService.findAll(user_id, query);
+  findAll(@GetUser() user: JwtUser, @Query() query: PaginationQueryDto) {
+    return this.clientService.findAll(user.id, query);
   }
 
   /**

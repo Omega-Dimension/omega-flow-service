@@ -11,6 +11,7 @@ import {
   paginationHandler,
   paginationQueryHandler,
 } from '../libs/globalFunctions';
+import { FreelancerProfile } from '../freelancer-profile/entities/freelancer-profile.entity';
 @Injectable()
 export class ProjectService {
   constructor(
@@ -19,6 +20,9 @@ export class ProjectService {
 
     @InjectRepository(Client)
     private readonly clientRepository: Repository<Client>,
+
+    @InjectRepository(FreelancerProfile)
+    private readonly freelancerProfileRepository: Repository<FreelancerProfile>,
   ) {}
 
   /**
@@ -26,12 +30,18 @@ export class ProjectService {
    * - validate client
    * - create project under user
    */
-  async create(freelancer_profile_id: string, createProjectDto: CreateProjectDto) {
-  if (!(await this.clientRepository.existsBy({ id: createProjectDto.client_id }))) throwNotFound('Client not found');
+  async create(user_id: string, createProjectDto: CreateProjectDto) {
+    const freelancerProfile = await this.freelancerProfileRepository.findOne({
+      where: { user_id },
+    });
+    if (!freelancerProfile) {
+      throwNotFound('Freelancer profile not found');
+    }
+    if (!(await this.clientRepository.findOne({where: {id: createProjectDto.client_id, freelancer_profile_id: freelancerProfile.id}}))) throwNotFound('Client not found');
     return {
       success: !!(await this.projectRepository.save(
         this.projectRepository.create({
-          freelancer_profile_id,
+          freelancer_profile_id: freelancerProfile.id,
           ...createProjectDto,
         }),
       )),
@@ -85,7 +95,10 @@ export class ProjectService {
    */
   async update(id: string, updateProjectDto: UpdateProjectDto) {
     await this.findOne(id);
-    const { affected } = await this.projectRepository.update(id, updateProjectDto);
+    const { affected } = await this.projectRepository.update(
+      id,
+      updateProjectDto,
+    );
     if (!affected) throwConflict('Update failed');
     return {
       success: true,

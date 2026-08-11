@@ -72,10 +72,10 @@ export class ClientService {
    * - return paginated result
    */
   async findAll(user_id: string, query: ClientQueryDto) {
-    const { page_number, per_page, company, country } = query;
+    const { page_number, per_page, company_name, country } = query;
 
     const freelancerProfile = await this.freelancerProfileRepository.findOne({
-      where: { user_id },
+      where: { user_id : user_id },
     });
 
     if (!freelancerProfile) {
@@ -85,7 +85,7 @@ export class ClientService {
     const [data, total] = await this.clientRepository.findAndCount({
       where: {
         freelancer_profile_id: freelancerProfile.id,
-        ...(company && { company: ILike(`%${company}%`) }),
+        ...(company_name && { company: ILike(`%${company_name}%`) }),
         ...(country && { country }),
       },
       ...paginationQueryHandler(query),
