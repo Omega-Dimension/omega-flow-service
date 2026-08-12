@@ -14,6 +14,8 @@ import { TimelogService } from './timelog.service';
 import { CreateTimelogDto } from './dto/create-timelog.dto';
 import { UpdateTimelogDto } from './dto/update-timelog.dto';
 import { TimelogQueryDto } from './dto/query.dto';
+import { GetUser } from '../auth/decorators/get-user.decorator';
+import type { JwtUser } from '../libs/interfaces/jwt-user.interface';
 
 /**
  * Timelog Controller
@@ -29,23 +31,23 @@ export class TimelogController {
    * Create time log
    * POST /time-logs/:user_id
    */
-  @Post(':user_id')
+  @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(
-    @Param('user_id') user_id: string,
-    @Body() createTimelogDto: CreateTimelogDto,
-  ) {
-    return this.timelogService.create(user_id, createTimelogDto);
+  create(@GetUser() user: JwtUser, @Body() createTimelogDto: CreateTimelogDto) {
+    return this.timelogService.create(user.id, createTimelogDto);
   }
 
   /**
    * Get all time logs
    * GET /time-logs
    */
-  @Get()
-  findAll(@Query() query: TimelogQueryDto) {
-    return this.timelogService.findAll(query);
-  }
+@Get()
+findAll(
+  @GetUser() user: JwtUser,
+  @Query() query: TimelogQueryDto,
+) {
+  return this.timelogService.findAll(user.id, query);
+}
 
   /**
    * Get single time log

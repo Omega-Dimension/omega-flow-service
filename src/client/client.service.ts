@@ -75,7 +75,7 @@ export class ClientService {
     const { page_number, per_page, company_name, country } = query;
 
     const freelancerProfile = await this.freelancerProfileRepository.findOne({
-      where: { user_id : user_id },
+      where: { user_id: user_id },
     });
 
     if (!freelancerProfile) {

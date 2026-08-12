@@ -14,6 +14,7 @@ import { Contract } from '../../contract/entities/contract.entity';
 import { Meeting } from '../../meeting/entities/meeting.entity';
 import { Client } from '../../client/entities/client.entity';
 import { Portfolio } from '../../portfolio/entities/portfolio.entity';
+import { Timelog } from '../../timelog/entities/timelog.entity';
 
 @Entity('freelancer_profile')
 export class FreelancerProfile {
@@ -103,5 +104,9 @@ export class FreelancerProfile {
 
   @OneToMany(() => Portfolio, (portfolio) => portfolio.freelancer_profile)
   portfolios : Portfolio[];
+
+  @OneToMany(() => Timelog, (time_log) => time_log.freelancer_profile)
+  time_logs : Timelog[];
+
 
 }

@@ -11,6 +11,7 @@ import {
   paginationHandler,
   paginationQueryHandler,
 } from '../libs/globalFunctions';
+import { FreelancerProfile } from '../freelancer-profile/entities/freelancer-profile.entity';
 
 @Injectable()
 export class TimelogService {
@@ -20,6 +21,9 @@ export class TimelogService {
 
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+
+    @InjectRepository(FreelancerProfile)
+    private readonly freelancerProfileRepository: Repository<FreelancerProfile>,
   ) {}
 
   /**
@@ -28,11 +32,25 @@ export class TimelogService {
    * - create time log under user
    */
   async create(user_id: string, createTimelogDto: CreateTimelogDto) {
-    if(!(await this.projectRepository.existsBy({id : createTimelogDto.project_id}))) throwNotFound("Project not found");
+    const freelancer = await this.freelancerProfileRepository.findOne({
+      where: { user_id },
+    });
+
+    if (!freelancer) throwNotFound('Freelancer profile not found');
+
+    if (
+      !(await this.projectRepository.findOne({
+        where: {
+          id: createTimelogDto.project_id,
+          freelancer_profile_id: freelancer.id,
+        },
+      }))
+    )
+      throwNotFound('Project not found');
     return {
       success: !!(await this.timelogRepository.save(
         this.timelogRepository.create({
-          user_id,
+          freelancer_profile_id: freelancer.id,
           ...createTimelogDto,
         }),
       )),
@@ -45,11 +63,26 @@ export class TimelogService {
    * - filter by project/billable
    * - include project relation
    */
-  async findAll(query: TimelogQueryDto) {
+  async findAll(user_id: string, query: TimelogQueryDto) {
     const { page_number, per_page, project_id, is_billable } = query;
+
+    // Get the freelancer profile belonging to the logged-in user
+    const freelancerProfile = await this.freelancerProfileRepository.findOne({
+      where: {
+        user_id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!freelancerProfile) {
+      throwNotFound('Freelancer profile not found');
+    }
 
     const [data, total] = await this.timelogRepository.findAndCount({
       where: {
+        freelancer_profile_id: freelancerProfile.id,
         ...(project_id && { project_id }),
         ...(is_billable !== undefined && {
           is_billable: is_billable === 'true',
@@ -72,7 +105,7 @@ export class TimelogService {
   async findOne(id: string) {
     const timelog = await this.timelogRepository.findOne({
       where: { id },
-      relations: { project: true, user: true },
+      relations: { project: true, freelancer_profile: true },
     });
     if (!timelog) throwNotFound('Time log not found');
     return timelog;

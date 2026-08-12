@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Project } from '../../project/entities/project.entity';
+import { FreelancerProfile } from '../../freelancer-profile/entities/freelancer-profile.entity';
 
 @Entity('time_logs')
 export class Timelog {
@@ -18,7 +19,7 @@ export class Timelog {
   project_id: string;
 
   @Column({ type: 'uuid' })
-  user_id: string;
+  freelancer_profile_id: string;
 
   @Column({ type: 'text', nullable: true })
   description?: string;
@@ -56,7 +57,7 @@ export class Timelog {
   @JoinColumn({ name: 'project_id', referencedColumnName: 'id' })
   project: Project;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  user: User;
+  @ManyToOne(() => FreelancerProfile, (freelancer_profile) => freelancer_profile.time_logs)
+  @JoinColumn({name : "freelancer_profile_id", referencedColumnName : "id"})
+  freelancer_profile : FreelancerProfile;
 }
