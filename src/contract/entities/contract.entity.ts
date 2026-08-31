@@ -63,6 +63,18 @@ export class Contract {
   @Column({ type: 'text', nullable: true })
   contract_file?: string;
 
+  @Column({ type: 'timestamp', nullable: true })
+  freelancer_signed_at?: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  client_signed_at?: Date;
+
+  @Column({ type: 'text', nullable: true })
+  freelancer_signature?: string; // base64 image or typed name
+
+  @Column({ type: 'text', nullable: true })
+  client_signature?: string;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   created_at: Date;
 

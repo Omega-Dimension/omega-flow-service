@@ -37,10 +37,19 @@ export class ContractController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   create(
-    @GetUser() user: JwtUser, 
+    @GetUser() user: JwtUser,
     @Body() createContractDto: CreateContractDto,
   ) {
     return this.contractService.create(user.id, createContractDto);
+  }
+
+  @Post(':id/sign')
+  sign(
+    @Param('id') id: string,
+    @GetUser() user: JwtUser,
+    @Body('signature') signature: string,
+  ) {
+    return this.contractService.sign(id, user, signature);
   }
 
   /**
@@ -48,8 +57,8 @@ export class ContractController {
    * GET /contracts
    */
   @Get()
-  findAll(@Query() query: ContractQueryDto) {
-    return this.contractService.findAll(query);
+  findAll(@GetUser() user: JwtUser, @Query() query: ContractQueryDto) {
+    return this.contractService.findAll(user, query);
   }
 
   /**
@@ -67,18 +76,17 @@ export class ContractController {
    */
   @Patch(':id')
   update(
-    @GetUser() user : JwtUser,
+    @Param('id') id: string,
     @Body() updateContractDto: UpdateContractDto,
   ) {
-    return this.contractService.update(user.id, updateContractDto);
+    return this.contractService.update(id, updateContractDto);
   }
-
   /**
    * Delete contract
    * DELETE /contracts/:id
    */
   @Delete(':id')
-  remove(@GetUser() user : JwtUser) {
-    return this.contractService.remove(user.id);
+  remove(@Param('id') id: string) {
+    return this.contractService.remove(id);
   }
 }
