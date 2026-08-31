@@ -9,11 +9,15 @@ import {
   HttpStatus,
   HttpCode,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ContractService } from './contract.service';
 import { CreateContractDto } from './dto/create-contract.dto';
 import { UpdateContractDto } from './dto/update-contract.dto';
 import { ContractQueryDto } from './dto/query.dto';
+import type { JwtUser } from '../libs/interfaces/jwt-user.interface';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { GetUser } from '../auth/decorators/get-user.decorator';
 
 /**
  * Contract Controller
@@ -22,6 +26,7 @@ import { ContractQueryDto } from './dto/query.dto';
  */
 
 @Controller('contracts')
+@UseGuards(JwtAuthGuard)
 export class ContractController {
   constructor(private readonly contractService: ContractService) {}
 
@@ -29,13 +34,13 @@ export class ContractController {
    * Create contract
    * POST /contracts/:user_id
    */
-  @Post(':user_id')
+  @Post()
   @HttpCode(HttpStatus.CREATED)
   create(
-    @Param('user_id') user_id: string,
+    @GetUser() user: JwtUser, 
     @Body() createContractDto: CreateContractDto,
   ) {
-    return this.contractService.create(user_id, createContractDto);
+    return this.contractService.create(user.id, createContractDto);
   }
 
   /**
@@ -62,10 +67,10 @@ export class ContractController {
    */
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @GetUser() user : JwtUser,
     @Body() updateContractDto: UpdateContractDto,
   ) {
-    return this.contractService.update(id, updateContractDto);
+    return this.contractService.update(user.id, updateContractDto);
   }
 
   /**
@@ -73,7 +78,7 @@ export class ContractController {
    * DELETE /contracts/:id
    */
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.contractService.remove(id);
+  remove(@GetUser() user : JwtUser) {
+    return this.contractService.remove(user.id);
   }
 }
