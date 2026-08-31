@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FreelancerProfile } from './entities/freelancer-profile.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { CreateFreelancerProfileDto } from './dto/create-freelancer-profile.dto';
 import { throwConflict, throwNotFound } from '../libs/throwError';
 import { FreelancerProfileQueryDto } from './dto/query.dto';
@@ -29,16 +29,14 @@ export class FreelancerProfileService {
   ) {
     if (await this.freelancerProfileRepository.existsBy({ user_id }))
       throwConflict('Freelancer profile already exists');
-
     const profile = await this.freelancerProfileRepository.save(
       this.freelancerProfileRepository.create({
         user_id,
         ...createFreelancerProfileDto,
       }),
     );
-
     return {
-      success : true,
+      success: true,
       data: profile,
     };
   }
@@ -46,15 +44,18 @@ export class FreelancerProfileService {
   /**
    * Use Case: Get Freelancer Profiles (Paginated)
    * - list profiles
-   * - filter by visibility
+   * - filter by visibility / country
+   * - include owning user (name, email) so clients can browse
    */
   async findAll(query: FreelancerProfileQueryDto) {
-    const { page_number, per_page, is_public } = query;
+    const { page_number, per_page, is_public, country } = query;
 
     const [data, total] = await this.freelancerProfileRepository.findAndCount({
       where: {
         ...(is_public !== undefined && { is_public: is_public === 'true' }),
+        ...(country && { country: ILike(`%${country}%`) }),
       },
+      relations: { user: true },
       ...paginationQueryHandler(query),
       order: {
         created_at: 'DESC',

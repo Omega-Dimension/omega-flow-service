@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Meeting } from './entities/meeting.entity';
@@ -6,21 +6,19 @@ import { Client } from '../client/entities/client.entity';
 import {
   CreateMeetingByClientDto,
   CreateMeetingByFreelancerDto,
-  CreateMeetingDto,
 } from './dto/create-meeting.dto';
 import { UpdateMeetingDto } from './dto/update-meeting.dto';
 import { MeetingQueryDto } from './dto/query.dto';
-import {
-  throwConflict,
-  throwForbidden,
-  throwNotFound,
-} from '../libs/throwError';
+import { throwConflict, throwNotFound } from '../libs/throwError';
 import {
   paginationHandler,
   paginationQueryHandler,
 } from '../libs/globalFunctions';
 import { FreelancerProfile } from '../freelancer-profile/entities/freelancer-profile.entity';
 import { ClientProfile } from '../client-profile/entities/client-profile.entity';
+import { MEETING_EVENTS, SocketService } from '../socket/socket.service';
+import { Notification } from '../notification/entities/notification.entity';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class MeetingService {
@@ -36,13 +34,13 @@ export class MeetingService {
 
     @InjectRepository(ClientProfile)
     private readonly clientProfileRepository: Repository<ClientProfile>,
+
+    private readonly notificationService: NotificationService,
   ) {}
 
   async createByFreelancer(user_id: string, dto: CreateMeetingByFreelancerDto) {
-
-
     const freelancer = await this.freelancerProfileRepository.findOne({
-      where: { user_id : user_id },
+      where: { user_id: user_id },
     });
 
     if (!freelancer) {
@@ -54,6 +52,7 @@ export class MeetingService {
         id: dto.client_id,
         freelancer_profile_id: freelancer.id,
       },
+      relations: { client_profile: true },
     });
 
     if (!client) {
@@ -68,6 +67,15 @@ export class MeetingService {
     });
 
     const saved = await this.meetingRepository.save(meeting);
+
+    // Create unread notification for the client
+    if (client.client_profile?.user_id) {
+      await this.notificationService.notifyUser(
+        client.client_profile.user_id,
+        MEETING_EVENTS.NEW,
+        { meeting: saved, created_by_role: 'freelancer' },
+      );
+    }
 
     return {
       success: true,
@@ -116,6 +124,16 @@ export class MeetingService {
     });
 
     const saved = await this.meetingRepository.save(meeting);
+
+    // Create unread notification for the freelancer
+
+    if (freelancer.user_id) {
+      await this.notificationService.notifyUser(
+        freelancer.user_id,
+        MEETING_EVENTS.NEW,
+        { meeting: saved, created_by_role: 'client' },
+      );
+    }
 
     return {
       success: true,
@@ -176,70 +194,48 @@ export class MeetingService {
   //   return paginationHandler(data, total, page_number, per_page);
   // }
 
-  async findByFreelancer(
-  user_id: string,
-  query: MeetingQueryDto,
-) {
+  async findByFreelancer(user_id: string, query: MeetingQueryDto) {
+    try {
+      const { client_id, project_id, status, page_number, per_page } = query;
 
-  try {
-    const {
-      client_id,
-      project_id,
-      status,
-      page_number,
-      per_page,
-    } = query;
+      const freelancer = await this.freelancerProfileRepository.findOne({
+        where: { user_id },
+      });
 
+      if (!freelancer) {
+        throwNotFound('Freelancer profile not found');
+      }
 
-    const freelancer = await this.freelancerProfileRepository.findOne({
-      where: { user_id },
-    });
+      const where = {
+        freelancer_profile_id: freelancer.id,
+        ...(client_id && { client_id }),
+        ...(project_id && { project_id }),
+        ...(status && { status }),
+      };
 
-  
+      const pagination = paginationQueryHandler(query);
 
-    if (!freelancer) {
-      throwNotFound('Freelancer profile not found');
+      const [data, total] = await this.meetingRepository.findAndCount({
+        where,
+        relations: {
+          client: true,
+          project: true,
+        },
+        ...pagination,
+        order: {
+          scheduled_at: 'ASC',
+        },
+      });
+
+      return paginationHandler(data, total, page_number, per_page);
+    } catch (error) {
+      console.error('========== FIND FREELANCER MEETINGS ERROR ==========');
+      console.error(error);
+      console.error('====================================================');
+
+      throw error;
     }
-
-
-    const where = {
-      freelancer_profile_id: freelancer.id,
-      ...(client_id && { client_id }),
-      ...(project_id && { project_id }),
-      ...(status && { status }),
-    };
-
-
-    const pagination = paginationQueryHandler(query);
-
-
-    const [data, total] = await this.meetingRepository.findAndCount({
-      where,
-      relations: {
-        client: true,
-        project: true,
-      },
-      ...pagination,
-      order: {
-        scheduled_at: 'ASC',
-      },
-    });
-
-
-    return paginationHandler(
-      data,
-      total,
-      page_number,
-      per_page,
-    );
-  } catch (error) {
-    console.error("========== FIND FREELANCER MEETINGS ERROR ==========");
-    console.error(error);
-    console.error("====================================================");
-
-    throw error;
   }
-}
 
   async findByClient(user_id: string, query: MeetingQueryDto) {
     const clientProfile = await this.clientProfileRepository.findOne({
@@ -300,14 +296,50 @@ export class MeetingService {
    * Use Case: Update Meeting
    * - verify meeting exists
    * - update meeting data
+   * - real-time: notify the other party about changes
    */
-  async update(id: string, updateMeetingDto: UpdateMeetingDto) {
-    await this.findOne(id);
+  async update(
+    id: string,
+    updateMeetingDto: UpdateMeetingDto,
+    actor_user_id?: string,
+  ) {
+    const existing = await this.meetingRepository.findOne({
+      where: { id },
+      relations: {
+        freelancer_profile: true,
+        client: { client_profile: true },
+      },
+    });
+    if (!existing) throwNotFound('Meeting not found');
+
     const { affected } = await this.meetingRepository.update(
       id,
       updateMeetingDto,
     );
     if (!affected) throwConflict('Update failed');
+
+    const updated = await this.findOne(id);
+    const payload = { meeting: updated };
+
+    // Create/unupdate notification for the other party
+    const freelancer_user_id = existing.freelancer_profile?.user_id;
+    const client_user_id = existing.client?.client_profile?.user_id;
+
+    if (freelancer_user_id && freelancer_user_id !== actor_user_id) {
+      await this.notificationService.notifyUser(
+        freelancer_user_id,
+        MEETING_EVENTS.UPDATE,
+        payload,
+      );
+    }
+    if (client_user_id && client_user_id !== actor_user_id) {
+      await this.notificationService.notifyUser(
+        client_user_id,
+        MEETING_EVENTS.UPDATE,
+        payload,
+      );
+    }
+
     return {
       success: true,
     };

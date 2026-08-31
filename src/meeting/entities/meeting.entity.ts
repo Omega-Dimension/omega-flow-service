@@ -64,9 +64,12 @@ export class Meeting {
    * Relations
    */
 
-  @ManyToOne(() => FreelancerProfile, (freelancer_profile) => freelancer_profile.meetings)
-  @JoinColumn({name : "freelancer_profile_id", referencedColumnName : "id"})
-  freelancer_profile : FreelancerProfile;
+  @ManyToOne(
+    () => FreelancerProfile,
+    (freelancer_profile) => freelancer_profile.meetings,
+  )
+  @JoinColumn({ name: 'freelancer_profile_id', referencedColumnName: 'id' })
+  freelancer_profile: FreelancerProfile;
 
   @ManyToOne(() => Client, (client) => client.meetings)
   @JoinColumn({ name: 'client_id', referencedColumnName: 'id' })
@@ -75,6 +78,4 @@ export class Meeting {
   @ManyToOne(() => Project, (project) => project.meetings)
   @JoinColumn({ name: 'project_id', referencedColumnName: 'id' })
   project?: Project;
-
-
 }

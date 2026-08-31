@@ -3,9 +3,7 @@ import { CountryService } from './country.service';
 
 @Controller('countries')
 export class CountryController {
-  constructor(
-    private readonly countryService: CountryService,
-  ) {}
+  constructor(private readonly countryService: CountryService) {}
 
   @Get()
   findAll() {

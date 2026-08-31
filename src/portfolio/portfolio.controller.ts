@@ -10,12 +10,14 @@ import {
   HttpCode,
   Query,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { PortfolioService } from './portfolio.service';
 import { CreatePortfolioDto } from './dto/create-portfolio.dto';
 import { UpdatePortfolioDto } from './dto/update-portfolio.dto';
 import { PortfolioQueryDto } from './dto/query.dto';
 import { throwBadRequest } from '../libs/throwError';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 /**
  * Portfolio Controller
@@ -24,12 +26,13 @@ import { throwBadRequest } from '../libs/throwError';
  */
 
 @Controller('portfolios')
+@UseGuards(JwtAuthGuard)
 export class PortfolioController {
   constructor(private readonly portfolioService: PortfolioService) {}
 
   /**
    * Create portfolio item
-   * POST /portfolios/:user_id
+   * POST /portfolios/:freelancer_profile_id
    */
   @Post(':freelancer_profile_id')
   @HttpCode(HttpStatus.CREATED)

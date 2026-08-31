@@ -3,19 +3,27 @@ import { CreateClientProfileDto } from './dto/create-client-profile.dto';
 import { UpdateClientProfileDto } from './dto/update-client-profile.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClientProfile } from './entities/client-profile.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { throwConflict, throwNotFound } from '../libs/throwError';
 import { ClientProfileQueryDto } from './dto/query.dto';
 import {
   paginationHandler,
   paginationQueryHandler,
 } from '../libs/globalFunctions';
+import { User } from '../user/entities/user.entity';
+import { Client } from '../client/entities/client.entity';
 
 @Injectable()
 export class ClientProfileService {
   constructor(
     @InjectRepository(ClientProfile)
     private readonly clientProfileRepository: Repository<ClientProfile>,
+
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+
+    @InjectRepository(Client)
+    private readonly clientRepository: Repository<Client>,
   ) {}
 
   /**
@@ -27,18 +35,30 @@ export class ClientProfileService {
     user_id: string,
     createClientProfileDto: CreateClientProfileDto,
   ) {
-    if (await this.clientProfileRepository.existsBy({ user_id }))
+    const existingProfile = await this.clientProfileRepository.findOne({
+      where: { user_id },
+    });
+    if (existingProfile) {
       throwConflict('Client profile already exists');
+    }
 
-    const profile = await this.clientProfileRepository.save(
-      this.clientProfileRepository.create({
-        user_id,
-        ...createClientProfileDto,
-      }),
+    const user = await this.userRepository.findOne({ where: { id: user_id } });
+    if (!user) throwNotFound('User not found');
+
+    const clientProfile = this.clientProfileRepository.create({
+      user_id,
+      ...createClientProfileDto,
+    });
+    await this.clientProfileRepository.save(clientProfile);
+
+    await this.clientRepository.update(
+      { email: user.email, client_profile_id: IsNull() },
+      { client_profile_id: clientProfile.id },
     );
+
     return {
       success: true,
-      data: profile,
+      data: clientProfile,
     };
   }
 

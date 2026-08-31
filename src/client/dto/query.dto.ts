@@ -1,5 +1,5 @@
-import { IsOptional, IsString } from "class-validator";
-import { PaginationQueryDto } from "../../common/dto/pagination-query.dto";
+import { IsOptional, IsString } from 'class-validator';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 export class ClientQueryDto extends PaginationQueryDto {
   @IsOptional()

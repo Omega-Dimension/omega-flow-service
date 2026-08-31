@@ -32,7 +32,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @Controller('meetings')
 @UseGuards(JwtAuthGuard)
 export class MeetingController {
-  constructor(private readonly meetingService: MeetingService) {}
+  constructor(
+    private readonly meetingService: MeetingService,
+
+  ) {}
 
   @Post('freelancer')
   @HttpCode(HttpStatus.CREATED)
@@ -93,16 +96,13 @@ export class MeetingController {
    * PATCH /meetings/:id
    */
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMeetingDto: UpdateMeetingDto) {
-    return this.meetingService.update(id, updateMeetingDto);
+  update(
+    @GetUser() user: JwtUser,
+    @Param('id') id: string,
+    @Body() updateMeetingDto: UpdateMeetingDto,
+  ) {
+    return this.meetingService.update(id, updateMeetingDto, user.id);
   }
 
-  /**
-   * Delete meeting
-   * DELETE /meetings/:id
-   */
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.meetingService.remove(id);
-  }
+
 }

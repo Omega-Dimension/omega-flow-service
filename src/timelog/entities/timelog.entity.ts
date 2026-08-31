@@ -6,7 +6,6 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from '../../user/entities/user.entity';
 import { Project } from '../../project/entities/project.entity';
 import { FreelancerProfile } from '../../freelancer-profile/entities/freelancer-profile.entity';
 
@@ -57,7 +56,10 @@ export class Timelog {
   @JoinColumn({ name: 'project_id', referencedColumnName: 'id' })
   project: Project;
 
-  @ManyToOne(() => FreelancerProfile, (freelancer_profile) => freelancer_profile.time_logs)
-  @JoinColumn({name : "freelancer_profile_id", referencedColumnName : "id"})
-  freelancer_profile : FreelancerProfile;
+  @ManyToOne(
+    () => FreelancerProfile,
+    (freelancer_profile) => freelancer_profile.time_logs,
+  )
+  @JoinColumn({ name: 'freelancer_profile_id', referencedColumnName: 'id' })
+  freelancer_profile: FreelancerProfile;
 }

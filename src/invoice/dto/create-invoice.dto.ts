@@ -19,9 +19,6 @@ export class CreateInvoiceDto {
   @IsUUID()
   project_id?: string;
 
-  @IsString()
-  invoice_number: string;
-
   @IsOptional()
   @IsIn(['draft', 'pending', 'paid', 'overdue'])
   status?: string;

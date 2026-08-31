@@ -24,13 +24,13 @@ import { FreelancerProfile } from '../../freelancer-profile/entities/freelancer-
 export class Client {
   @PrimaryGeneratedColumn('uuid')
   id: string;
- 
+
   @Index()
-  @Column({name : "freelancer_profile_id", type : "uuid"})
+  @Column({ name: 'freelancer_profile_id', type: 'uuid' })
   freelancer_profile_id: string;
 
   @Index()
-  @Column({name : "client_profile_id", type : "uuid", nullable : true})
+  @Column({ name: 'client_profile_id', type: 'uuid', nullable: true })
   client_profile_id?: string;
 
   @Column({ type: 'varchar', length: 150 })
@@ -64,28 +64,20 @@ export class Client {
    * Relations
    */
 
-   @ManyToOne(
-    () => FreelancerProfile,
-    (freelancer) => freelancer.clients,
-    {
-      onDelete: 'CASCADE',
-    },
-  )
+  @ManyToOne(() => FreelancerProfile, (freelancer) => freelancer.clients, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({
     name: 'freelancer_profile_id',
     referencedColumnName: 'id',
   })
   freelancer_profile: FreelancerProfile;
 
-    // Optional registered client account
-  @ManyToOne(
-    () => ClientProfile,
-    (clientProfile) => clientProfile.clients,
-    {
-      nullable: true,
-      onDelete: 'SET NULL',
-    },
-  )
+  // Optional registered client account
+  @ManyToOne(() => ClientProfile, (clientProfile) => clientProfile.clients, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({
     name: 'client_profile_id',
     referencedColumnName: 'id',
@@ -105,5 +97,5 @@ export class Client {
   invoices: Invoice[];
 
   @OneToMany(() => Meeting, (meeting) => meeting.client)
-  meetings : Meeting[];
+  meetings: Meeting[];
 }

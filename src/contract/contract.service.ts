@@ -14,7 +14,6 @@ import {
   paginationQueryHandler,
 } from '../libs/globalFunctions';
 
-
 @Injectable()
 export class ContractService {
   constructor(
@@ -34,14 +33,25 @@ export class ContractService {
    * - validate project
    * - create contract under user
    */
-  async create(freelancer_profile_id: string, createContractDto: CreateContractDto) {
-    const [clientExists, projectExists] = await Promise.all([
-      this.clientRepository.existsBy({id : createContractDto.client_id}),
-      this.projectRepository.existsBy({id : createContractDto.project_id})
-    ])
+  async create(
+    freelancer_profile_id: string,
+    createContractDto: CreateContractDto,
+  ) {
+    const [client, projectExists] = await Promise.all([
+      this.clientRepository.findOne({
+        where: { id: createContractDto.client_id },
+      }),
+      this.projectRepository.existsBy({ id: createContractDto.project_id }),
+    ]);
 
-    if (!clientExists) throwNotFound('Client not found');
+    if (!client) throwNotFound('Client not found');
     if (!projectExists) throwNotFound('Project not found');
+
+    if (!client.client_profile_id) {
+      throwConflict(
+        'This client has not registered an account yet. Contracts require a registered client to sign.',
+      );
+    }
 
     return {
       success: !!(await this.contractRepository.save(

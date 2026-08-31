@@ -7,11 +7,9 @@ import { Project } from '../project/entities/project.entity';
 import { FreelancerProfile } from '../freelancer-profile/entities/freelancer-profile.entity';
 
 @Module({
-  imports : [
-    TypeOrmModule.forFeature([Timelog, Project, FreelancerProfile])
-  ],
+  imports: [TypeOrmModule.forFeature([Timelog, Project, FreelancerProfile])],
   controllers: [TimelogController],
   providers: [TimelogService],
-  exports : [TimelogService]
+  exports: [TimelogService],
 })
 export class TimelogModule {}

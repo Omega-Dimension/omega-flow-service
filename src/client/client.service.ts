@@ -11,6 +11,8 @@ import {
 } from '../libs/globalFunctions';
 import { ClientQueryDto } from './dto/query.dto';
 import { FreelancerProfile } from '../freelancer-profile/entities/freelancer-profile.entity';
+import { User } from '../user/entities/user.entity';
+import { ClientProfile } from '../client-profile/entities/client-profile.entity';
 
 @Injectable()
 export class ClientService {
@@ -23,6 +25,12 @@ export class ClientService {
 
     @InjectRepository(FreelancerProfile)
     private readonly freelancerProfileRepository: Repository<FreelancerProfile>,
+
+    @InjectRepository(ClientProfile)
+    private readonly clientProfileRepository: Repository<ClientProfile>,
+
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   /**
@@ -53,8 +61,28 @@ export class ClientService {
       throwConflict('Email already exists');
     }
 
+    // check if this email already belongs to a registered client account
+    let client_profile_id: string | null = null;
+    if (createClientDto.email) {
+      const existingUser = await this.userRepository.findOne({
+        where: { email: createClientDto.email },
+      });
+
+      if (existingUser) {
+        const existingClientProfile =
+          await this.clientProfileRepository.findOne({
+            where: { user_id: existingUser.id },
+          });
+
+        if (existingClientProfile) {
+          client_profile_id = existingClientProfile.id;
+        }
+      }
+    }
+
     const client = this.clientRepository.create({
       freelancer_profile_id: freelancerProfile.id,
+      client_profile_id: client_profile_id ?? undefined,
       ...createClientDto,
     });
 

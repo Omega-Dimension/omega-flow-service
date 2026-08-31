@@ -1,8 +1,12 @@
-import { IsBooleanString, IsOptional } from 'class-validator';
+import { IsBooleanString, IsOptional, IsString } from 'class-validator';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 
 export class FreelancerProfileQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsBooleanString()
   is_public?: string;
+
+  @IsOptional()
+  @IsString()
+  country?: string;
 }

@@ -11,7 +11,9 @@ describe('FreelancerProfileController', () => {
       providers: [FreelancerProfileService],
     }).compile();
 
-    controller = module.get<FreelancerProfileController>(FreelancerProfileController);
+    controller = module.get<FreelancerProfileController>(
+      FreelancerProfileController,
+    );
   });
 
   it('should be defined', () => {

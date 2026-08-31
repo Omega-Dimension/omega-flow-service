@@ -85,9 +85,9 @@ export class Project {
   contracts: Contract[];
 
   @ManyToOne(() => FreelancerProfile, (freelancer) => freelancer.projects)
-  @JoinColumn({name : "freelancer_profile_id", referencedColumnName : "id"})
-  freelancer_profile : FreelancerProfile;
+  @JoinColumn({ name: 'freelancer_profile_id', referencedColumnName: 'id' })
+  freelancer_profile: FreelancerProfile;
 
   @OneToMany(() => Meeting, (meeting) => meeting.project)
-  meetings : Meeting[];
+  meetings: Meeting[];
 }

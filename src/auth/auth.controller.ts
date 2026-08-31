@@ -16,6 +16,7 @@ import { User } from '../user/entities/user.entity';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import type { JwtUser } from '../libs/interfaces/jwt-user.interface';
 import { FirebaseLoginDto } from './dto/login.dto';
+import { JwtRefreshAuthGuard } from './guards/jwt-refresh.guard';
 
 @Controller('auth')
 @UseGuards(JwtAuthGuard)
@@ -43,6 +44,14 @@ export class AuthController {
   loginWithGoogle(@Body() dto: FirebaseLoginDto) {
     return this.authService.loginWithFirebase(dto.id_token);
   }
+
+@Public()
+@UseGuards(JwtRefreshAuthGuard)
+@Post('refresh')
+@HttpCode(HttpStatus.OK)
+refresh(@GetUser() user: JwtUser) {
+  return this.authService.refreshTokens(user.id);
+}
 
   @Get('me')
   me(@GetUser() user: JwtUser) {

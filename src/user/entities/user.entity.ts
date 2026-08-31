@@ -30,7 +30,7 @@ export class User {
   })
   email: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   password?: string;
 
   @Column({ nullable: true, type: 'enum', enum: ['freelancer', 'client'] })

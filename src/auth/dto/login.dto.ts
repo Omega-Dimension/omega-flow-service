@@ -12,5 +12,5 @@ export class LoginDto {
 export class FirebaseLoginDto {
   @IsString()
   @IsNotEmpty()
-  id_token : string;
+  id_token: string;
 }

@@ -45,10 +45,7 @@ export class ClientController {
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(
-    @GetUser() user: JwtUser,
-    @Body() createClientDto: CreateClientDto,
-  ) {
+  create(@GetUser() user: JwtUser, @Body() createClientDto: CreateClientDto) {
     return this.clientService.create(user.id, createClientDto);
   }
 

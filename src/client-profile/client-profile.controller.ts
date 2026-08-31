@@ -10,12 +10,16 @@ import {
   HttpCode,
   Query,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ClientProfileService } from './client-profile.service';
 import { CreateClientProfileDto } from './dto/create-client-profile.dto';
 import { UpdateClientProfileDto } from './dto/update-client-profile.dto';
 import { ClientProfileQueryDto } from './dto/query.dto';
 import { throwBadRequest } from '../libs/throwError';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { GetUser } from '../auth/decorators/get-user.decorator';
+import type { JwtUser } from '../libs/interfaces/jwt-user.interface';
 
 /**
  * Client Profile Controller
@@ -24,26 +28,21 @@ import { throwBadRequest } from '../libs/throwError';
  */
 
 @Controller('client-profiles')
+@UseGuards(JwtAuthGuard)
 export class ClientProfileController {
   constructor(private readonly clientProfileService: ClientProfileService) {}
 
   /**
    * Create client profile
-   * POST /client-profiles/:user_id
+   * POST /client-profiles
    */
-  @Post(':user_id')
+  @Post()
   @HttpCode(HttpStatus.CREATED)
   create(
-    @Param(
-      'user_id',
-      new ParseUUIDPipe({
-        exceptionFactory: () => throwBadRequest('User ID must be a valid UUID'),
-      }),
-    )
-    user_id: string,
+    @GetUser() user: JwtUser,
     @Body() createClientProfileDto: CreateClientProfileDto,
   ) {
-    return this.clientProfileService.create(user_id, createClientProfileDto);
+    return this.clientProfileService.create(user.id, createClientProfileDto);
   }
 
   /**
@@ -60,7 +59,15 @@ export class ClientProfileController {
    * GET /client-profiles/user/:user_id
    */
   @Get('user/:user_id')
-  findByUser(@Param('user_id') user_id: string) {
+  findByUser(
+    @Param(
+      'user_id',
+      new ParseUUIDPipe({
+        exceptionFactory: () => throwBadRequest('User ID must be a valid UUID'),
+      }),
+    )
+    user_id: string,
+  ) {
     return this.clientProfileService.findByUser(user_id);
   }
 

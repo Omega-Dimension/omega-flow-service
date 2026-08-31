@@ -15,6 +15,7 @@ import { Meeting } from '../../meeting/entities/meeting.entity';
 import { Client } from '../../client/entities/client.entity';
 import { Portfolio } from '../../portfolio/entities/portfolio.entity';
 import { Timelog } from '../../timelog/entities/timelog.entity';
+import { Invoice } from '../../invoice/entities/invoice.entity';
 
 @Entity('freelancer_profile')
 export class FreelancerProfile {
@@ -85,28 +86,28 @@ export class FreelancerProfile {
    * Relations
    */
 
-
   @OneToOne(() => User, (user) => user.freelancer_profile)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: User;
 
   @OneToMany(() => Client, (client) => client.freelancer_profile)
-  clients : Client[];
+  clients: Client[];
 
   @OneToMany(() => Project, (project) => project.freelancer_profile)
-  projects : Project[];
+  projects: Project[];
 
   @OneToMany(() => Contract, (contract) => contract.freelancer_profile)
-  contracts : Contract[];
+  contracts: Contract[];
 
   @OneToMany(() => Meeting, (meeting) => meeting.freelancer_profile)
-  meetings : Meeting[];
+  meetings: Meeting[];
 
   @OneToMany(() => Portfolio, (portfolio) => portfolio.freelancer_profile)
-  portfolios : Portfolio[];
+  portfolios: Portfolio[];
 
   @OneToMany(() => Timelog, (time_log) => time_log.freelancer_profile)
-  time_logs : Timelog[];
+  time_logs: Timelog[];
 
-
+  @OneToMany(() => Invoice, (invoice) => invoice.freelancer_profile)
+  invoices: Invoice[];
 }

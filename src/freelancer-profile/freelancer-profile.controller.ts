@@ -9,11 +9,17 @@ import {
   HttpStatus,
   HttpCode,
   Query,
+  ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { FreelancerProfileService } from './freelancer-profile.service';
 import { CreateFreelancerProfileDto } from './dto/create-freelancer-profile.dto';
 import { UpdateFreelancerProfileDto } from './dto/update-freelancer-profile.dto';
 import { FreelancerProfileQueryDto } from './dto/query.dto';
+import { throwBadRequest } from '../libs/throwError';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { GetUser } from '../auth/decorators/get-user.decorator';
+import type { JwtUser } from '../libs/interfaces/jwt-user.interface';
 
 /**
  * Freelancer Profile Controller
@@ -22,6 +28,7 @@ import { FreelancerProfileQueryDto } from './dto/query.dto';
  */
 
 @Controller('freelancer-profiles')
+@UseGuards(JwtAuthGuard)
 export class FreelancerProfileController {
   constructor(
     private readonly freelancerProfileService: FreelancerProfileService,
@@ -29,16 +36,16 @@ export class FreelancerProfileController {
 
   /**
    * Create freelancer profile
-   * POST /freelancer-profiles/:user_id
+   * POST /freelancer-profiles
    */
-  @Post(':user_id')
+  @Post()
   @HttpCode(HttpStatus.CREATED)
   create(
-    @Param('user_id') user_id: string,
+    @GetUser() user: JwtUser,
     @Body() createFreelancerProfileDto: CreateFreelancerProfileDto,
   ) {
     return this.freelancerProfileService.create(
-      user_id,
+      user.id,
       createFreelancerProfileDto,
     );
   }
@@ -57,7 +64,15 @@ export class FreelancerProfileController {
    * GET /freelancer-profiles/user/:user_id
    */
   @Get('user/:user_id')
-  findByUser(@Param('user_id') user_id: string) {
+  findByUser(
+    @Param(
+      'user_id',
+      new ParseUUIDPipe({
+        exceptionFactory: () => throwBadRequest('User ID must be a valid UUID'),
+      }),
+    )
+    user_id: string,
+  ) {
     return this.freelancerProfileService.findByUser(user_id);
   }
 
@@ -79,10 +94,7 @@ export class FreelancerProfileController {
     @Param('id') id: string,
     @Body() updateFreelancerProfileDto: UpdateFreelancerProfileDto,
   ) {
-    return this.freelancerProfileService.update(
-      id,
-      updateFreelancerProfileDto,
-    );
+    return this.freelancerProfileService.update(id, updateFreelancerProfileDto);
   }
 
   /**

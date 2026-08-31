@@ -19,15 +19,23 @@ export class PortfolioService {
     private readonly portfolioRepository: Repository<Portfolio>,
 
     @InjectRepository(FreelancerProfile)
-    private readonly freelancerRepository : Repository<FreelancerProfile>
+    private readonly freelancerRepository: Repository<FreelancerProfile>,
   ) {}
 
   /**
    * Use Case: Create Portfolio Item
    * - create portfolio entry under user
    */
-  async create(freelancer_profile_id: string, createPortfolioDto: CreatePortfolioDto) {
-    if(!(await this.freelancerRepository.findOne({where : { id : freelancer_profile_id}}))) throwNotFound("Freelancer not found")
+  async create(
+    freelancer_profile_id: string,
+    createPortfolioDto: CreatePortfolioDto,
+  ) {
+    if (
+      !(await this.freelancerRepository.findOne({
+        where: { id: freelancer_profile_id },
+      }))
+    )
+      throwNotFound('Freelancer not found');
     return {
       success: !!(await this.portfolioRepository.save(
         this.portfolioRepository.create({

@@ -9,12 +9,15 @@ import {
   HttpStatus,
   HttpCode,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectQueryDto } from './dto/query.dto';
 import { GetUser } from '../auth/decorators/get-user.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import type { JwtUser } from '../libs/interfaces/jwt-user.interface';
 
 /**
  * Project Controller
@@ -23,6 +26,7 @@ import { GetUser } from '../auth/decorators/get-user.decorator';
  */
 
 @Controller('projects')
+@UseGuards(JwtAuthGuard)
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
@@ -32,11 +36,8 @@ export class ProjectController {
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(
-    @GetUser('id') user_id: string,
-    @Body() createProjectDto: CreateProjectDto,
-  ) {
-    return this.projectService.create(user_id, createProjectDto);
+  create(@GetUser() user: JwtUser, @Body() createProjectDto: CreateProjectDto) {
+    return this.projectService.create(user.id, createProjectDto);
   }
 
   /**
@@ -44,8 +45,8 @@ export class ProjectController {
    * GET /projects
    */
   @Get()
-  findAll(@Query() query: ProjectQueryDto) {
-    return this.projectService.findAll(query);
+  findAll(@GetUser() user: JwtUser, @Query() query: ProjectQueryDto) {
+    return this.projectService.findAll(user.id, query);
   }
 
   /**

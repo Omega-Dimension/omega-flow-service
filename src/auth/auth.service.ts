@@ -8,6 +8,7 @@ import { CreateUserDto } from '../user/dto/create-user.dto';
 import { throwConflict, throwUnauthorized } from '../libs/throwError';
 import { PasswordCheck, PasswordHash } from '../libs/globalFunctions';
 import { getAuth } from 'firebase-admin/auth';
+import { JwtUser } from '../libs/interfaces/jwt-user.interface';
 
 @Injectable()
 export class AuthService {
@@ -75,11 +76,11 @@ export class AuthService {
       ...this.generateTokens(user),
       user: {
         id: user.id,
-        name : user.name,
+        name: user.name,
         email: user.email,
         default_workspace: user.default_workspace,
-        freelancer_profile_id : user.freelancer_profile?.id ?? null,
-        client_profile_id : user.client_profile?.id ?? null
+        freelancer_profile_id: user.freelancer_profile?.id ?? null,
+        client_profile_id: user.client_profile?.id ?? null,
       },
     };
   }
@@ -91,13 +92,13 @@ export class AuthService {
    * 3. Return the authenticated user.
    */
   async validateUser(email: string, password: string) {
-    const user = await this.userRepository.findOne({
-      where: { email },
-      relations : {
-        freelancer_profile : true,
-        client_profile : true
-      }
-    });
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .leftJoinAndSelect('user.freelancer_profile', 'freelancer_profile')
+      .leftJoinAndSelect('user.client_profile', 'client_profile')
+      .where('user.email = :email', { email })
+      .getOne();
 
     if (
       !user ||
@@ -131,6 +132,12 @@ export class AuthService {
     return this.login(user);
   }
 
+  async refreshTokens(userId: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throwUnauthorized('User not found');
+    return this.generateTokens(user);
+  }
+
   /**
    * Use Case: Get Current User Profile
    * 1. Retrieve the user by id.
@@ -138,17 +145,20 @@ export class AuthService {
    * 3. Throw if the user does not exist.
    */
   async me(userId: string) {
-    const user = await this.userRepository.findOne({
-      where: {
-        id: userId,
-      },
-      select: ['id', 'email', 'created_at', 'updated_at'],
-    });
+  const user = await this.userRepository.findOne({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      created_at: true,
+      updated_at: true,
+    },
+  });
 
-    if (!user) {
-      throwUnauthorized('User not found');
-    }
-
-    return user;
+  if (!user) {
+    throwUnauthorized('User not found');
   }
+
+  return user;
+}
 }

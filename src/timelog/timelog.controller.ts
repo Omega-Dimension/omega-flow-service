@@ -9,6 +9,7 @@ import {
   HttpStatus,
   HttpCode,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { TimelogService } from './timelog.service';
 import { CreateTimelogDto } from './dto/create-timelog.dto';
@@ -16,6 +17,7 @@ import { UpdateTimelogDto } from './dto/update-timelog.dto';
 import { TimelogQueryDto } from './dto/query.dto';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import type { JwtUser } from '../libs/interfaces/jwt-user.interface';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 /**
  * Timelog Controller
@@ -24,6 +26,7 @@ import type { JwtUser } from '../libs/interfaces/jwt-user.interface';
  */
 
 @Controller('time-logs')
+@UseGuards(JwtAuthGuard)
 export class TimelogController {
   constructor(private readonly timelogService: TimelogService) {}
 
@@ -41,13 +44,10 @@ export class TimelogController {
    * Get all time logs
    * GET /time-logs
    */
-@Get()
-findAll(
-  @GetUser() user: JwtUser,
-  @Query() query: TimelogQueryDto,
-) {
-  return this.timelogService.findAll(user.id, query);
-}
+  @Get()
+  findAll(@GetUser() user: JwtUser, @Query() query: TimelogQueryDto) {
+    return this.timelogService.findAll(user.id, query);
+  }
 
   /**
    * Get single time log

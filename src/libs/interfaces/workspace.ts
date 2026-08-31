@@ -1,4 +1,4 @@
 export enum WorkspaceType {
-  FREELANCER = "freelancer",
-  CLIENT = "client",
+  FREELANCER = 'freelancer',
+  CLIENT = 'client',
 }

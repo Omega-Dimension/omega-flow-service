@@ -72,7 +72,10 @@ export class Contract {
   /**
    * Relations
    */
-  @ManyToOne(() => FreelancerProfile, (freelancer_profile) => freelancer_profile.contracts)
+  @ManyToOne(
+    () => FreelancerProfile,
+    (freelancer_profile) => freelancer_profile.contracts,
+  )
   @JoinColumn({ name: 'freelancer_profile_id', referencedColumnName: 'id' })
   freelancer_profile: FreelancerProfile;
 

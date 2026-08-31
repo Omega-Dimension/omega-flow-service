@@ -1,24 +1,24 @@
 import { Module, Global } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {initializeApp, cert, getApps} from 'firebase-admin/app';
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
 
 // Define a unique injection token
 export const FIREBASE_ADMIN_TOKEN = 'FIREBASE_ADMIN_TOKEN';
 
-@Global() 
+@Global()
 @Module({
-   providers: [
+  providers: [
     {
       provide: FIREBASE_ADMIN_TOKEN,
       useFactory: (config: ConfigService) => {
         if (!getApps().length) {
           return initializeApp({
             credential: cert({
-              projectId: config.get<string>("FIREBASE_PROJECT_ID")!,
-              clientEmail: config.get<string>("FIREBASE_CLIENT_EMAIL")!,
+              projectId: config.get<string>('FIREBASE_PROJECT_ID')!,
+              clientEmail: config.get<string>('FIREBASE_CLIENT_EMAIL')!,
               privateKey: config
-                .get<string>("FIREBASE_PRIVATE_KEY")!
-                .replace(/\\n/g, "\n"),
+                .get<string>('FIREBASE_PRIVATE_KEY')!
+                .replace(/\\n/g, '\n'),
             }),
           });
         }

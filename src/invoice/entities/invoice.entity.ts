@@ -4,24 +4,26 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../user/entities/user.entity';
 import { Client } from '../../client/entities/client.entity';
 import { Project } from '../../project/entities/project.entity';
 import { InvoiceItem } from './invoice-item.entity';
+import { FreelancerProfile } from '../../freelancer-profile/entities/freelancer-profile.entity';
 
 @Entity('invoice')
+@Index(['freelancer_profile_id', 'invoice_number'], {unique : true})
 export class Invoice {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ type: 'uuid' })
-  user_id: string;
+  freelancer_profile_id: string;
 
   @Column({ type: 'uuid' })
   client_id: string;
@@ -29,7 +31,7 @@ export class Invoice {
   @Column({ type: 'uuid', nullable: true })
   project_id?: string;
 
-  @Column({ type: 'varchar', length: 100, unique: true })
+  @Column({ type: 'varchar', length: 100 })
   invoice_number: string;
 
   @Column({ type: 'varchar', length: 30, default: 'draft' })
@@ -117,4 +119,11 @@ export class Invoice {
 
   @OneToMany(() => InvoiceItem, (invoiceItem) => invoiceItem.invoice)
   invoice_items: InvoiceItem[];
+
+  @ManyToOne(
+    () => FreelancerProfile,
+    (freelancer_profile) => freelancer_profile.invoices,
+  )
+  @JoinColumn({ name: 'freelancer_profile_id', referencedColumnName: 'id' })
+  freelancer_profile: FreelancerProfile;
 }

@@ -44,9 +44,8 @@ export class ClientProfile {
    */
   @OneToOne(() => User, (user) => user.client_profile)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  user: User; 
+  user: User;
 
   @OneToMany(() => Client, (client) => client.client_profile)
-  clients : Client[];
-  
+  clients: Client[];
 }

@@ -18,10 +18,13 @@ import { PortfolioModule } from './portfolio/portfolio.module';
 import { ReviewModule } from './review/review.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { CountryModule } from './common/country/country.module';
+import { SocketModule } from './socket/socket.module';
+import { NotificationModule } from './notification/notification.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync(databaseConfig),
+    SocketModule,
     UserModule,
     ClientModule,
     ProjectModule,
@@ -36,6 +39,7 @@ import { CountryModule } from './common/country/country.module';
     ReviewModule,
     FirebaseModule,
     CountryModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

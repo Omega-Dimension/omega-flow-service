@@ -37,7 +37,15 @@ export class ProjectService {
     if (!freelancerProfile) {
       throwNotFound('Freelancer profile not found');
     }
-    if (!(await this.clientRepository.findOne({where: {id: createProjectDto.client_id, freelancer_profile_id: freelancerProfile.id}}))) throwNotFound('Client not found');
+    if (
+      !(await this.clientRepository.findOne({
+        where: {
+          id: createProjectDto.client_id,
+          freelancer_profile_id: freelancerProfile.id,
+        },
+      }))
+    )
+      throwNotFound('Client not found');
     return {
       success: !!(await this.projectRepository.save(
         this.projectRepository.create({
@@ -54,11 +62,19 @@ export class ProjectService {
    * - filter by client/status
    * - include client relation
    */
-  async findAll(query: ProjectQueryDto) {
+  async findAll(user_id: string, query: ProjectQueryDto) {
     const { page_number, per_page, client_id, status } = query;
+
+    const freelancerProfile = await this.freelancerProfileRepository.findOne({
+      where: {
+        user_id,
+      },
+    });
+    if (!freelancerProfile) throwNotFound('Freelancer profile not found');
 
     const [data, total] = await this.projectRepository.findAndCount({
       where: {
+        freelancer_profile_id: freelancerProfile.id,
         ...(client_id && { client_id }),
         ...(status && { status }),
       },
