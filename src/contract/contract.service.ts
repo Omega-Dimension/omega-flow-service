@@ -3,7 +3,6 @@ import { CreateContractDto } from './dto/create-contract.dto';
 import { UpdateContractDto } from './dto/update-contract.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Contract } from './entities/contract.entity';
-import { privateDecrypt } from 'crypto';
 import { Repository } from 'typeorm';
 import { Client } from '../client/entities/client.entity';
 import { Project } from '../project/entities/project.entity';
@@ -116,12 +115,24 @@ export class ContractService {
 
     const [data, total] = await this.contractRepository.findAndCount({
       where: ownershipFilter, // TypeORM treats an array of where-objects as OR
-      relations: { client: true, project: true },
+      relations: { client: true, project: true, freelancer_profile: {user : true  } },
       ...paginationQueryHandler(query),
       order: { created_at: 'DESC' },
     });
 
-    return paginationHandler(data, total, page_number, per_page);
+    const mapped = data.map((c) => ({
+      ...c,
+      freelancer_profile: c.freelancer_profile
+        ? {
+            id: c.freelancer_profile.id,
+            name: c.freelancer_profile.user.name,
+          }
+        : undefined,
+    }));
+
+    console.log('mapped', mapped);
+
+    return paginationHandler(mapped, total, page_number, per_page);
   }
   /**
    * Use Case: Get Single Contract
@@ -130,7 +141,7 @@ export class ContractService {
   async findOne(id: string, user?: JwtUser) {
     const contract = await this.contractRepository.findOne({
       where: { id },
-      relations: { client: true, project: true, freelancer_profile: true },
+      relations: { client: true, project: true, freelancer_profile: {user : true} },
     });
 
     if (!contract) throwNotFound('Contract not found');
