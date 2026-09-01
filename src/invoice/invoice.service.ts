@@ -133,7 +133,12 @@ export class InvoiceService {
 
     const [data, total] = await this.invoiceRepository.findAndCount({
       where,
-      relations: { freelancer_profile: true, client: true, project: true },
+      relations: {
+        freelancer_profile: true,
+        client: true,
+        project: true,
+        invoice_items: true,
+      },
       ...paginationQueryHandler(query),
       order: { created_at: 'DESC' },
     });
@@ -171,22 +176,48 @@ export class InvoiceService {
     id: string,
     updateInvoiceDto: UpdateInvoiceDto,
   ) {
-    const freelancerProfile = await this.freelancerProfileRepository.findOne({
-      where: { user_id },
-    });
-    if (!freelancerProfile) throwNotFound('Freelancer profile not found');
+    const { invoice_items, ...rest } = updateInvoiceDto;
 
-    const invoice = await this.invoiceRepository.findOne({
-      where: { id, freelancer_profile_id: freelancerProfile.id },
-    });
-    if (!invoice) throwNotFound('Invoice not found');
+    return this.dataSource.transaction(async (manager) => {
+      const freelancerProfile = await manager.findOne(FreelancerProfile, {
+        where: { user_id },
+      });
+      if (!freelancerProfile) throwNotFound('Freelancer profile not found');
 
-    const { affected } = await this.invoiceRepository.update(
-      id,
-      updateInvoiceDto,
-    );
-    if (!affected) throwConflict('Update failed');
-    return { success: true };
+      const invoice = await manager.findOne(Invoice, {
+        where: { id, freelancer_profile_id: freelancerProfile.id },
+      });
+      if (!invoice) throwNotFound('Invoice not found');
+
+      if (invoice_items) {
+        await manager.delete('invoice_items', { invoice_id: id });
+
+        const subTotal = invoice_items.reduce(
+          (acc, i) => acc + i.quantity * i.unit_price,
+          0,
+        );
+        const taxPercent = invoice.tax_percent;
+        const taxAmount = subTotal * (taxPercent / 100);
+
+        Object.assign(rest, {
+          sub_total: subTotal,
+          tax_amount: taxAmount,
+          total: subTotal + taxAmount,
+        });
+
+        await manager.save(
+          'invoice_items',
+          invoice_items.map((item) => ({
+            invoice_id: id,
+            ...item,
+            total: item.quantity * item.unit_price,
+          })),
+        );
+      }
+
+      await manager.update(Invoice, id, rest);
+      return { success: true };
+    });
   }
 
   async remove(user_id: string, id: string) {

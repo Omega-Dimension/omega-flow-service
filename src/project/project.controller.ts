@@ -46,7 +46,7 @@ export class ProjectController {
    */
   @Get()
   findAll(@GetUser() user: JwtUser, @Query() query: ProjectQueryDto) {
-    return this.projectService.findAll(user.id, query);
+    return this.projectService.findAll(user, query);
   }
 
   /**
