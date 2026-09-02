@@ -8,7 +8,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../user/entities/user.entity';
 import { Client } from '../../client/entities/client.entity';
 import { Project } from '../../project/entities/project.entity';
 import { FreelancerProfile } from '../../freelancer-profile/entities/freelancer-profile.entity';

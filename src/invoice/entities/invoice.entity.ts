@@ -15,6 +15,7 @@ import { Client } from '../../client/entities/client.entity';
 import { Project } from '../../project/entities/project.entity';
 import { InvoiceItem } from './invoice-item.entity';
 import { FreelancerProfile } from '../../freelancer-profile/entities/freelancer-profile.entity';
+import { Payment } from '../../payment/entities/payment.entity';
 
 @Entity('invoice')
 @Index(['freelancer_profile_id', 'invoice_number'], {unique : true})
@@ -119,6 +120,10 @@ export class Invoice {
 
   @OneToMany(() => InvoiceItem, (invoiceItem) => invoiceItem.invoice)
   invoice_items: InvoiceItem[];
+
+
+  @OneToMany(() => Payment, (payment) => payment.invoice)
+  payments : Payment[];
 
   @ManyToOne(
     () => FreelancerProfile,

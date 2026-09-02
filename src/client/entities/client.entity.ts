@@ -19,6 +19,7 @@ import { Contract } from '../../contract/entities/contract.entity';
 import { Meeting } from '../../meeting/entities/meeting.entity';
 import { ClientProfile } from '../../client-profile/entities/client-profile.entity';
 import { FreelancerProfile } from '../../freelancer-profile/entities/freelancer-profile.entity';
+import { Payment } from '../../payment/entities/payment.entity';
 
 @Entity('client')
 export class Client {
@@ -98,4 +99,7 @@ export class Client {
 
   @OneToMany(() => Meeting, (meeting) => meeting.client)
   meetings: Meeting[];
+
+  @OneToMany(() => Payment, (payment) => payment.client)
+  payments : Payment[];
 }

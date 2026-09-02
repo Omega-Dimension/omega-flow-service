@@ -20,6 +20,7 @@ import { FirebaseModule } from './firebase/firebase.module';
 import { CountryModule } from './common/country/country.module';
 import { SocketModule } from './socket/socket.module';
 import { NotificationModule } from './notification/notification.module';
+import { PaymentModule } from './payment/payment.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -40,6 +41,7 @@ import { NotificationModule } from './notification/notification.module';
     FirebaseModule,
     CountryModule,
     NotificationModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
