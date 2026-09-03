@@ -14,6 +14,8 @@ import {
 import { FreelancerProfile } from '../freelancer-profile/entities/freelancer-profile.entity';
 import { ClientProfile } from '../client-profile/entities/client-profile.entity';
 import { DataSource } from 'typeorm';
+import { NotificationService } from '../notification/notification.service';
+import { INVOICE_EVENTS } from '../libs/constants';
 
 @Injectable()
 export class InvoiceService {
@@ -31,6 +33,8 @@ export class InvoiceService {
     private readonly freelancerProfileRepository: Repository<FreelancerProfile>,
 
     private readonly dataSource: DataSource,
+
+    private readonly notificationService: NotificationService,
   ) {}
   /**
    * Use Case: Create Invoice
@@ -41,50 +45,72 @@ export class InvoiceService {
   async create(user_id: string, createInvoiceDto: CreateInvoiceDto) {
     const { client_id, project_id, invoice_items, ...rest } = createInvoiceDto;
 
-    return this.dataSource.transaction(async (manager) => {
-      const freelancerProfile = await manager.findOne(FreelancerProfile, {
-        where: { user_id },
-        lock: { mode: 'pessimistic_write' }, // serializes concurrent create() calls for this freelancer
-      });
-      if (!freelancerProfile) throwNotFound('Freelancer profile not found');
+    const { savedInvoice, clientUserId } = await this.dataSource.transaction(
+      async (manager) => {
+        const freelancerProfile = await manager.findOne(FreelancerProfile, {
+          where: { user_id },
+          lock: { mode: 'pessimistic_write' }, // serializes concurrent create() calls for this freelancer
+        });
+        if (!freelancerProfile) throwNotFound('Freelancer profile not found');
 
-      const client = await manager.findOne(Client, {
-        where: { id: client_id, freelancer_profile_id: freelancerProfile.id },
-      });
-      if (!client) throwNotFound('Client not found');
+        // Load client WITH client_profile so we can resolve the client's user_id
+        // for the notification — the plain findOne below doesn't give us that.
+        const client = await manager.findOne(Client, {
+          where: { id: client_id, freelancer_profile_id: freelancerProfile.id },
+          relations: { client_profile: true },
+        });
+        if (!client) throwNotFound('Client not found');
 
-      const invoice_number = await this.generateInvoiceNumber(
-        manager,
-        freelancerProfile.id,
+        const invoice_number = await this.generateInvoiceNumber(
+          manager,
+          freelancerProfile.id,
+        );
+
+        const subTotal = invoice_items.reduce(
+          (acc, i) => acc + i.quantity * i.unit_price,
+          0,
+        );
+        const taxPercent = 0;
+        const taxAmount = subTotal * (taxPercent / 100);
+
+        const invoice = manager.create(Invoice, {
+          ...rest,
+          client_id,
+          project_id,
+          freelancer_profile_id: freelancerProfile.id,
+          invoice_number,
+          sub_total: subTotal,
+          tax_percent: taxPercent,
+          tax_amount: taxAmount,
+          total: subTotal + taxAmount,
+          invoice_items: invoice_items.map((item) => ({
+            ...item,
+            total: item.quantity * item.unit_price,
+          })),
+        });
+
+        const savedInvoice = await manager.save(invoice);
+
+        return {
+          savedInvoice,
+          clientUserId: client.client_profile?.user_id,
+        };
+      },
+    );
+
+    // Fire notification AFTER the transaction commits — never notify on data
+    // that might still get rolled back. `notifyUser` already no-ops on a
+    // falsy id, but the guard here keeps intent explicit.
+    if (clientUserId) {
+      await this.notificationService.notifyUser(
+        clientUserId,
+        INVOICE_EVENTS.NEW,
+        { invoice: savedInvoice },
       );
+    }
 
-      const subTotal = invoice_items.reduce(
-        (acc, i) => acc + i.quantity * i.unit_price,
-        0,
-      );
-      const taxPercent = 0;
-      const taxAmount = subTotal * (taxPercent / 100);
-
-      const invoice = manager.create(Invoice, {
-        ...rest,
-        client_id,
-        project_id,
-        freelancer_profile_id: freelancerProfile.id,
-        invoice_number,
-        sub_total: subTotal,
-        tax_percent: taxPercent,
-        tax_amount: taxAmount,
-        total: subTotal + taxAmount,
-        invoice_items: invoice_items.map((item) => ({
-          ...item,
-          total: item.quantity * item.unit_price,
-        })),
-      });
-
-      return { success: true, data: await manager.save(invoice) };
-    });
+    return { success: true, data: savedInvoice };
   }
-
   private async generateInvoiceNumber(
     manager: EntityManager,
     freelancerProfileId: string,

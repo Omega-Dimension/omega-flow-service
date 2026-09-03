@@ -16,8 +16,7 @@ import {
 } from '../libs/globalFunctions';
 import { FreelancerProfile } from '../freelancer-profile/entities/freelancer-profile.entity';
 import { ClientProfile } from '../client-profile/entities/client-profile.entity';
-import { MEETING_EVENTS, SocketService } from '../socket/socket.service';
-import { Notification } from '../notification/entities/notification.entity';
+import { MEETING_EVENTS } from '../libs/constants';
 import { NotificationService } from '../notification/notification.service';
 
 @Injectable()

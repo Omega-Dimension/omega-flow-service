@@ -15,6 +15,8 @@ import {
 import { FreelancerProfile } from '../freelancer-profile/entities/freelancer-profile.entity';
 import { JwtUser } from '../libs/interfaces/jwt-user.interface';
 import { ClientProfile } from '../client-profile/entities/client-profile.entity';
+import { NotificationService } from '../notification/notification.service';
+import { CONTRACT_EVENTS } from '../libs/constants';
 
 @Injectable()
 export class ContractService {
@@ -33,6 +35,8 @@ export class ContractService {
 
     @InjectRepository(ClientProfile)
     private readonly clientProfileRepository: Repository<ClientProfile>,
+
+    private readonly notificationService: NotificationService,
   ) {}
 
   /**
@@ -115,7 +119,11 @@ export class ContractService {
 
     const [data, total] = await this.contractRepository.findAndCount({
       where: ownershipFilter, // TypeORM treats an array of where-objects as OR
-      relations: { client: true, project: true, freelancer_profile: {user : true  } },
+      relations: {
+        client: true,
+        project: true,
+        freelancer_profile: { user: true },
+      },
       ...paginationQueryHandler(query),
       order: { created_at: 'DESC' },
     });
@@ -130,8 +138,6 @@ export class ContractService {
         : undefined,
     }));
 
-    console.log('mapped', mapped);
-
     return paginationHandler(mapped, total, page_number, per_page);
   }
   /**
@@ -141,7 +147,11 @@ export class ContractService {
   async findOne(id: string, user?: JwtUser) {
     const contract = await this.contractRepository.findOne({
       where: { id },
-      relations: { client: true, project: true, freelancer_profile: {user : true} },
+      relations: {
+        client: true,
+        project: true,
+        freelancer_profile: { user: true },
+      },
     });
 
     if (!contract) throwNotFound('Contract not found');
@@ -202,15 +212,21 @@ export class ContractService {
   }
 
   async sign(id: string, user: JwtUser, signature: string) {
-    const contract = await this.findOne(id);
+    const contract = await this.contractRepository.findOne({
+      where: { id },
+      relations: {
+        client: { client_profile: true },
+        project: true,
+        freelancer_profile: { user: true },
+      },
+    });
+    if (!contract) throwNotFound('Contract not found');
 
-    // Step 1: login user (user.id) ကို profile id တွေနဲ့ ချိတ်ရှာပါ
     const [freelancerProfile, clientProfile] = await Promise.all([
       this.freelancerProfileRepository.findOne({ where: { user_id: user.id } }),
       this.clientProfileRepository.findOne({ where: { user_id: user.id } }),
     ]);
 
-    // Step 2: contract ထဲက freelancer_id / client.client_profile_id နဲ့ တိုက်စစ်ပါ
     const isFreelancer =
       !!freelancerProfile &&
       contract.freelancer_profile_id === freelancerProfile.id;
@@ -222,7 +238,6 @@ export class ContractService {
     if (!isFreelancer && !isClient) {
       throwConflict('You are not a party to this contract');
     }
-
     if (isFreelancer && contract.freelancer_signed) {
       throwConflict('You have already signed this contract');
     }
@@ -245,12 +260,44 @@ export class ContractService {
     await this.contractRepository.update(id, patch);
 
     const updated = await this.findOne(id);
+
+    // Compute both user ids ONCE, before branching.
+    const freelancerUserId = contract.freelancer_profile?.user?.id;
+    const clientUserId = contract.client?.client_profile?.user_id;
+
     if (
       updated.client_signed &&
       updated.freelancer_signed &&
       updated.status === 'draft'
     ) {
       await this.contractRepository.update(id, { status: 'active' });
+
+      if (freelancerUserId) {
+        await this.notificationService.notifyUser(
+          freelancerUserId,
+          CONTRACT_EVENTS.ACTIVATED,
+          { contract: updated },
+        );
+      }
+      if (clientUserId) {
+        await this.notificationService.notifyUser(
+          clientUserId,
+          CONTRACT_EVENTS.ACTIVATED,
+          { contract: updated },
+        );
+      }
+    } else {
+      const otherUserId = isFreelancer ? clientUserId : freelancerUserId;
+      if (otherUserId) {
+        await this.notificationService.notifyUser(
+          otherUserId,
+          CONTRACT_EVENTS.SIGNED,
+          {
+            contract: updated,
+            signed_by: isFreelancer ? 'freelancer' : 'client',
+          },
+        );
+      }
     }
 
     return { success: true };

@@ -3,11 +3,6 @@ import { Server } from 'socket.io';
 
 export const USER_ROOM_PREFIX = 'user:';
 
-export const MEETING_EVENTS = {
-  NEW: 'meeting:new',
-  UPDATE: 'meeting:update',
-} as const;
-
 @Injectable()
 export class SocketService {
   private readonly logger = new Logger(SocketService.name);
