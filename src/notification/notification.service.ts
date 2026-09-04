@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
 import { SocketService } from '../socket/socket.service';
 
@@ -16,7 +16,11 @@ export class NotificationService {
    * DB ထဲ notification သိမ်းမယ် + online ဖြစ်နေရင် real-time ပို့မယ်
    * meeting module (ဒါမှမဟုတ် အခြား module) ကနေ ဒီတစ်ခုတည်း ခေါ်ရုံပဲ လိုတော့မယ်
    */
-  async notifyUser(user_id: string, type: string, payload: Record<string, any>) {
+  async notifyUser(
+    user_id: string,
+    type: string,
+    payload: Record<string, any>,
+  ) {
     if (!user_id) return;
 
     await this.notificationRepository.save({
@@ -58,6 +62,15 @@ export class NotificationService {
   async markAllRead(user_id: string) {
     await this.notificationRepository.update(
       { user_id, is_read: false },
+      { is_read: true },
+    );
+    return { success: true };
+  }
+
+  async markReadByTypes(user_id: string, types: string[]) {
+    if (!types?.length) return { success: true };
+    await this.notificationRepository.update(
+      { user_id, is_read: false, type: In(types) },
       { is_read: true },
     );
     return { success: true };

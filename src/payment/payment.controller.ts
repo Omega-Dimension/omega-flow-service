@@ -59,6 +59,7 @@ export class PaymentController {
     return this.paymentService.findOne(id, user);
   }
 
+
   /**
    * Freelancer confirms or rejects a payment proof
    * PATCH /payments/:id/review

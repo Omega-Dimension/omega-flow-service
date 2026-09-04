@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { COUNTRIES } from '../../libs/countries';
+import { COUNTRIES } from '../../libs/constants';
 
 @Injectable()
 export class CountryService {

@@ -15,7 +15,7 @@ import { FreelancerProfile } from '../freelancer-profile/entities/freelancer-pro
 import { ClientProfile } from '../client-profile/entities/client-profile.entity';
 import { DataSource } from 'typeorm';
 import { NotificationService } from '../notification/notification.service';
-import { INVOICE_EVENTS } from '../libs/constants';
+import { INVOICE_EVENTS, INVOICE_STATUS } from '../libs/constants';
 
 @Injectable()
 export class InvoiceService {
@@ -36,10 +36,11 @@ export class InvoiceService {
 
     private readonly notificationService: NotificationService,
   ) {}
+
   /**
    * Use Case: Create Invoice
    * - validate client
-   * - create invoice
+   * - create invoice as `pending` — client sees it immediately, no draft step
    * - create invoice items
    */
   async create(user_id: string, createInvoiceDto: CreateInvoiceDto) {
@@ -75,6 +76,7 @@ export class InvoiceService {
 
         const invoice = manager.create(Invoice, {
           ...rest,
+          status: INVOICE_STATUS.PENDING, // always starts as pending — no draft
           client_id,
           project_id,
           freelancer_profile_id: freelancerProfile.id,
@@ -111,6 +113,7 @@ export class InvoiceService {
 
     return { success: true, data: savedInvoice };
   }
+
   private async generateInvoiceNumber(
     manager: EntityManager,
     freelancerProfileId: string,
@@ -146,13 +149,15 @@ export class InvoiceService {
       const clients = await this.clientRepository.find({
         where: { client_profile_id: clientProfile.id },
       });
+      // No draft concept anymore — a client sees every invoice tied to them,
+      // optionally narrowed by an explicit ?status= filter.
       where = {
         client_id: In(
           clients.length
             ? clients.map((c) => c.id)
             : ['00000000-0000-0000-0000-000000000000'],
         ),
-        status: status ?? In(['pending', 'paid', 'overdue']), // drafts stay invisible to clients
+        ...(status && { status }),
         ...(project_id && { project_id }),
       };
     }
@@ -192,8 +197,8 @@ export class InvoiceService {
     });
     const isOwner =
       clientProfile && invoice.client?.client_profile_id === clientProfile.id;
-    if (!isOwner || invoice.status === 'draft')
-      throwNotFound('Invoice not found');
+    // No draft check needed anymore — ownership is the only gate.
+    if (!isOwner) throwNotFound('Invoice not found');
     return invoice;
   }
 

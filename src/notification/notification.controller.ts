@@ -28,4 +28,9 @@ export class NotificationController {
   markAllRead(@GetUser() user: JwtUser) {
     return this.notificationService.markAllRead(user.id);
   }
+
+  @Patch('mark-read-by-type')
+  markReadByType(@GetUser() user: JwtUser, @Body() dto: { types: string[] }) {
+    return this.notificationService.markReadByTypes(user.id, dto.types);
+  }
 }

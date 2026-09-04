@@ -6,12 +6,12 @@ import { CreatePaymentDto } from './dto/create-payment.dto';
 import { ReviewPaymentDto, ReviewAction } from './dto/review-payment.dto';
 import { PaymentQueryDto } from './dto/query.dto';
 import { Invoice } from '../invoice/entities/invoice.entity';
-import { Client } from '../client/entities/client.entity';
 import { FreelancerProfile } from '../freelancer-profile/entities/freelancer-profile.entity';
 import { ClientProfile } from '../client-profile/entities/client-profile.entity';
 import { throwConflict, throwNotFound } from '../libs/throwError';
 import { paginationHandler, paginationQueryHandler } from '../libs/globalFunctions';
 import type { JwtUser } from '../libs/interfaces/jwt-user.interface';
+import { INVOICE_STATUS } from '../libs/constants';
 
 @Injectable()
 export class PaymentService {
@@ -21,9 +21,6 @@ export class PaymentService {
 
     @InjectRepository(Invoice)
     private readonly invoiceRepository: Repository<Invoice>,
-
-    @InjectRepository(Client)
-    private readonly clientRepository: Repository<Client>,
 
     @InjectRepository(FreelancerProfile)
     private readonly freelancerProfileRepository: Repository<FreelancerProfile>,
@@ -36,7 +33,7 @@ export class PaymentService {
    * Use Case: Client submits a payment proof (KPay / Wave Pay / bank transfer screenshot)
    * - client must own the invoice via their CRM client record
    * - invoice must not already be paid
-   * - invoice moves to 'pending_confirmation' so both sides see it's awaiting review
+   * - invoice moves to `pending_confirmation` so both sides see it's awaiting review
    */
   async create(user_id: string, dto: CreatePaymentDto) {
     const clientProfile = await this.clientProfileRepository.findOne({
@@ -56,8 +53,12 @@ export class PaymentService {
       throwConflict('You are not authorized to pay this invoice');
     }
 
-    if (invoice.status === 'paid') {
+    if (invoice.status === INVOICE_STATUS.PAID) {
       throwConflict('This invoice has already been paid');
+    }
+
+    if (invoice.status === INVOICE_STATUS.PENDING_CONFIRMATION) {
+      throwConflict('A payment proof is already awaiting confirmation');
     }
 
     const payment = this.paymentRepository.create({
@@ -76,7 +77,7 @@ export class PaymentService {
     const saved = await this.paymentRepository.save(payment);
 
     await this.invoiceRepository.update(invoice.id, {
-      status: 'pending_confirmation',
+      status: INVOICE_STATUS.PENDING_CONFIRMATION,
     });
 
     return { success: true, payment: saved };
@@ -119,7 +120,7 @@ export class PaymentService {
     }
 
     const [data, total] = await this.paymentRepository.findAndCount({
-      where: ownershipFilter, 
+      where: ownershipFilter,
       relations: { invoice: true, client: true },
       ...paginationQueryHandler(query),
       order: { created_at: 'DESC' },
@@ -168,7 +169,7 @@ export class PaymentService {
   /**
    * Use Case: Freelancer reviews a payment proof
    * - confirm: payment -> confirmed, invoice -> paid (+ paid_at)
-   * - reject: payment -> rejected with a reason, invoice reopens to 'sent'
+   * - reject: payment -> rejected with a reason, invoice reopens to `pending`
    *   so the client can resubmit a corrected screenshot
    */
   async review(id: string, user: JwtUser, dto: ReviewPaymentDto) {
@@ -203,7 +204,7 @@ export class PaymentService {
       });
 
       await this.invoiceRepository.update(payment.invoice_id, {
-        status: 'paid',
+        status: INVOICE_STATUS.PAID,
         paid_at: new Date(),
       });
     } else {
@@ -215,7 +216,7 @@ export class PaymentService {
       });
 
       await this.invoiceRepository.update(payment.invoice_id, {
-        status: 'sent',
+        status: INVOICE_STATUS.PENDING,
       });
     }
 
