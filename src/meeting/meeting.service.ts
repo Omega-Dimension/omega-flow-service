@@ -280,7 +280,7 @@ export class MeetingService {
 
   /**
    * Use Case: Get Single Meeting
-   * - find meeting with relations
+   * - find meeting with relations  
    */
   async findOne(id: string) {
     const meeting = await this.meetingRepository.findOne({

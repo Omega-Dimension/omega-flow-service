@@ -33,12 +33,15 @@ export class NotificationService {
     this.socketService.emitToUser(user_id, type, payload);
   }
 
-  async findUnread(user_id: string) {
-    return this.notificationRepository.find({
-      where: { user_id, is_read: false },
-      order: { created_at: 'DESC' },
-    });
-  }
+   async findUnread(user_id: string) {
+     console.log('Querying unread for user_id:', user_id);
+     const result = await this.notificationRepository.find({
+       where: { user_id, is_read: false },
+       order: { created_at: 'DESC' },
+     });
+     console.log('Found:', result);
+     return result;
+   }
 
   async findAll(user_id: string) {
     return this.notificationRepository.find({

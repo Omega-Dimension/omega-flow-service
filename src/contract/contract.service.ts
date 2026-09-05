@@ -265,39 +265,28 @@ export class ContractService {
     const freelancerUserId = contract.freelancer_profile?.user?.id;
     const clientUserId = contract.client?.client_profile?.user_id;
 
-    if (
+    // The party who did NOT just sign — the only one who should be notified,
+    // whether this signature completes the contract or not.
+    const otherUserId = isFreelancer ? clientUserId : freelancerUserId;
+
+    const justActivated =
       updated.client_signed &&
       updated.freelancer_signed &&
-      updated.status === 'draft'
-    ) {
-      await this.contractRepository.update(id, { status: 'active' });
+      updated.status === 'draft';
 
-      if (freelancerUserId) {
-        await this.notificationService.notifyUser(
-          freelancerUserId,
-          CONTRACT_EVENTS.ACTIVATED,
-          { contract: updated },
-        );
-      }
-      if (clientUserId) {
-        await this.notificationService.notifyUser(
-          clientUserId,
-          CONTRACT_EVENTS.ACTIVATED,
-          { contract: updated },
-        );
-      }
-    } else {
-      const otherUserId = isFreelancer ? clientUserId : freelancerUserId;
-      if (otherUserId) {
-        await this.notificationService.notifyUser(
-          otherUserId,
-          CONTRACT_EVENTS.SIGNED,
-          {
-            contract: updated,
-            signed_by: isFreelancer ? 'freelancer' : 'client',
-          },
-        );
-      }
+    if (justActivated) {
+      await this.contractRepository.update(id, { status: 'active' });
+    }
+
+    if (otherUserId) {
+      await this.notificationService.notifyUser(
+        otherUserId,
+        justActivated ? CONTRACT_EVENTS.ACTIVATED : CONTRACT_EVENTS.SIGNED,
+        {
+          contract: updated,
+          signed_by: isFreelancer ? 'freelancer' : 'client',
+        },
+      );
     }
 
     return { success: true };
