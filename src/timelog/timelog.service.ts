@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Timelog } from './entities/timelog.entity';
 import { Project } from '../project/entities/project.entity';
 import { CreateTimelogDto } from './dto/create-timelog.dto';
@@ -12,6 +12,8 @@ import {
   paginationQueryHandler,
 } from '../libs/globalFunctions';
 import { FreelancerProfile } from '../freelancer-profile/entities/freelancer-profile.entity';
+import { ClientProfile } from '../client-profile/entities/client-profile.entity';
+import { Client } from '../client/entities/client.entity';
 
 @Injectable()
 export class TimelogService {
@@ -24,6 +26,12 @@ export class TimelogService {
 
     @InjectRepository(FreelancerProfile)
     private readonly freelancerProfileRepository: Repository<FreelancerProfile>,
+
+    @InjectRepository(ClientProfile)
+    private readonly clientProfileRepository: Repository<ClientProfile>,
+
+    @InjectRepository(Client)
+    private readonly clientRepository: Repository<Client>,
   ) {}
 
   /**
@@ -76,13 +84,44 @@ export class TimelogService {
       },
     });
 
-    if (!freelancerProfile) {
-      throwNotFound('Freelancer profile not found');
+    let projectIds: string[] | undefined;
+    let scopedWhere: any = {};
+
+    if (freelancerProfile) {
+      scopedWhere.freelancer_profile_id = freelancerProfile.id;
+    } else {
+      const clientProfile = await this.clientProfileRepository.findOne({
+        where: { user_id },
+        select: { id: true },
+      });
+      if (!clientProfile)
+        throwNotFound('Freelancer or client profile not found');
+
+      const clients = await this.clientRepository.find({
+        where: { client_profile_id: clientProfile.id },
+        select: { id: true },
+      });
+
+      if (!clients.length)
+        return paginationHandler([], 0, page_number, per_page);
+
+      const clientIds = clients.map((c) => c.id);
+
+      const projects = await this.projectRepository.find({
+        where: { client_id: In(clientIds) },
+        select: { id: true },
+      });
+
+      projectIds = projects.map((p) => p.id);
+
+      if (!projectIds.length)
+        return paginationHandler([], 0, page_number, per_page);
+      scopedWhere.project_id = In(projectIds);
     }
 
     const [data, total] = await this.timelogRepository.findAndCount({
       where: {
-        freelancer_profile_id: freelancerProfile.id,
+        ...scopedWhere,
         ...(project_id && { project_id }),
         ...(is_billable !== undefined && {
           is_billable: is_billable === 'true',
@@ -90,9 +129,7 @@ export class TimelogService {
       },
       relations: { project: true },
       ...paginationQueryHandler(query),
-      order: {
-        log_date: 'DESC',
-      },
+      order: { log_date: 'DESC' },
     });
 
     return paginationHandler(data, total, page_number, per_page);
