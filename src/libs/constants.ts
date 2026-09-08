@@ -34,3 +34,8 @@ export const MEETING_EVENTS = {
   NEW: 'meeting:new',
   UPDATE: 'meeting:update',
 } as const;
+
+export enum ReviewerType {
+  FREELANCER = 'freelancer', // freelancer reviewing the client
+  CLIENT = 'client',         // client reviewing the freelancer
+}

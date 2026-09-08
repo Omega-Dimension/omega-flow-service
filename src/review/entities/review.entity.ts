@@ -6,9 +6,10 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from '../../user/entities/user.entity';
 import { Client } from '../../client/entities/client.entity';
 import { Project } from '../../project/entities/project.entity';
+import { FreelancerProfile } from '../../freelancer-profile/entities/freelancer-profile.entity';
+import { ReviewerType } from '../../libs/constants';
 
 @Entity('reviews')
 export class Review {
@@ -16,7 +17,7 @@ export class Review {
   id: string;
 
   @Column({ type: 'uuid' })
-  user_id: string;
+  freelancer_profile_id: string;
 
   @Column({ type: 'uuid' })
   client_id: string;
@@ -27,6 +28,12 @@ export class Review {
   @Column({ type: 'int' })
   rating: number;
 
+  @Column({ type: 'varchar', length: 30 })
+  reviewer_type: ReviewerType;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  title?: string;
+
   @Column({ type: 'text', nullable: true })
   comment?: string;
 
@@ -36,9 +43,12 @@ export class Review {
   /**
    * Relations
    */
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  user: User;
+  @ManyToOne(
+    () => FreelancerProfile,
+    (freelancer_profile) => freelancer_profile.reviews,
+  )
+  @JoinColumn({ name: 'freelancer_profile_id', referencedColumnName: 'id' })
+  freelancer_profile: FreelancerProfile;
 
   @ManyToOne(() => Client, (client) => client.reviews)
   @JoinColumn({ name: 'client_id', referencedColumnName: 'id' })

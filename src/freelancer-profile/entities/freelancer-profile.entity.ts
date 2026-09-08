@@ -17,6 +17,7 @@ import { Portfolio } from '../../portfolio/entities/portfolio.entity';
 import { Timelog } from '../../timelog/entities/timelog.entity';
 import { Invoice } from '../../invoice/entities/invoice.entity';
 import { Payment } from '../../payment/entities/payment.entity';
+import { Review } from '../../review/entities/review.entity';
 
 @Entity('freelancer_profile')
 export class FreelancerProfile {
@@ -114,4 +115,8 @@ export class FreelancerProfile {
 
   @OneToMany(() => Payment, (payment) => payment.freelancer_profile)
   payments : Payment[];
+
+  @OneToMany(() => Review, (review) => review.freelancer_profile)
+  reviews : Review[];
+
 }
