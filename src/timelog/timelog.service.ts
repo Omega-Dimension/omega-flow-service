@@ -28,7 +28,7 @@ export class TimelogService {
     private readonly freelancerProfileRepository: Repository<FreelancerProfile>,
 
     @InjectRepository(ClientProfile)
-    private readonly clientProfileRepository: Repository<ClientProfile>,
+    private readonly clientProfileRepository:   Repository<ClientProfile>,
 
     @InjectRepository(Client)
     private readonly clientRepository: Repository<Client>,
@@ -65,16 +65,8 @@ export class TimelogService {
     };
   }
 
-  /**
-   * Use Case: Get Time Logs (Paginated)
-   * - list time logs
-   * - filter by project/billable
-   * - include project relation
-   */
   async findAll(user_id: string, query: TimelogQueryDto) {
     const { page_number, per_page, project_id, is_billable } = query;
-
-    // Get the freelancer profile belonging to the logged-in user
     const freelancerProfile = await this.freelancerProfileRepository.findOne({
       where: {
         user_id,
@@ -135,10 +127,6 @@ export class TimelogService {
     return paginationHandler(data, total, page_number, per_page);
   }
 
-  /**
-   * Use Case: Get Single Time Log
-   * - find time log with relations
-   */
   async findOne(id: string) {
     const timelog = await this.timelogRepository.findOne({
       where: { id },
@@ -148,11 +136,6 @@ export class TimelogService {
     return timelog;
   }
 
-  /**
-   * Use Case: Update Time Log
-   * - verify time log exists
-   * - update time log data
-   */
   async update(id: string, updateTimelogDto: UpdateTimelogDto) {
     await this.findOne(id);
     const { affected } = await this.timelogRepository.update(
@@ -165,10 +148,6 @@ export class TimelogService {
     };
   }
 
-  /**
-   * Use Case: Delete Time Log
-   * - delete time log by id
-   */
   async remove(id: string) {
     const { affected } = await this.timelogRepository.delete(id);
 

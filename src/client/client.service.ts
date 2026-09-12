@@ -113,8 +113,8 @@ export class ClientService {
     const [data, total] = await this.clientRepository.findAndCount({
       where: {
         freelancer_profile_id: freelancerProfile.id,
-        ...(company_name && { company: ILike(`%${company_name}%`) }),
-        ...(country && { country }),
+        ...(company_name && { company_name: ILike(`%${company_name}%`) }),
+        ...(country && { country: ILike(`%${country}%`) }),
       },
       ...paginationQueryHandler(query),
       order: {

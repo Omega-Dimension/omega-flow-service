@@ -19,6 +19,7 @@ import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { JwtUser } from '../libs/interfaces/jwt-user.interface';
+import { ClientQueryDto } from './dto/query.dto';
 
 /**
  * Client Controller
@@ -54,7 +55,7 @@ export class ClientController {
    * GET /clients
    */
   @Get()
-  findAll(@GetUser() user: JwtUser, @Query() query: PaginationQueryDto) {
+  findAll(@GetUser() user: JwtUser, @Query() query: ClientQueryDto) {
     return this.clientService.findAll(user.id, query);
   }
 

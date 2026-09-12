@@ -3,7 +3,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Project } from './entities/project.entity';
-import { In, Repository } from 'typeorm';
+import { ILike, In, Repository } from 'typeorm';
 import { Client } from '../client/entities/client.entity';
 import { throwConflict, throwNotFound } from '../libs/throwError';
 import { ProjectQueryDto } from './dto/query.dto';
@@ -68,7 +68,7 @@ export class ProjectService {
    * - include client relation
    */
   async findAll(user: JwtUser, query: ProjectQueryDto) {
-    const { page_number, per_page, client_id, status } = query;
+    const { page_number, per_page, client_id, status, title } = query;
 
     // A JwtUser could resolve to a freelancer profile, a client profile, or (rarely) both.
     const [freelancerProfile, clientProfile] = await Promise.all([
@@ -82,6 +82,7 @@ export class ProjectService {
 
     let where: Record<string, any> = {
       ...(status && { status }),
+      ...(title?.trim() && { title: ILike(`%${title.trim()}%`) }),
     };
 
     if (freelancerProfile) {
@@ -92,7 +93,7 @@ export class ProjectService {
       // Client sees projects tied to the CRM client rows linked to their profile
       const clientRows = await this.clientRepository.find({
         where: { client_profile_id: clientProfile.id },
-        select: {id : true},
+        select: { id: true },
       });
 
       if (!clientRows.length) {
