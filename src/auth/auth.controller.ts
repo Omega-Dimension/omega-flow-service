@@ -45,13 +45,13 @@ export class AuthController {
     return this.authService.loginWithFirebase(dto.id_token);
   }
 
-@Public()
-@UseGuards(JwtRefreshAuthGuard)
-@Post('refresh')
-@HttpCode(HttpStatus.OK)
-refresh(@GetUser() user: JwtUser) {
-  return this.authService.refreshTokens(user.id);
-}
+  @Public()
+  @UseGuards(JwtRefreshAuthGuard)
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  refresh(@GetUser() user: JwtUser) {
+    return this.authService.refreshTokens(user.id);
+  }
 
   @Get('me')
   me(@GetUser() user: JwtUser) {

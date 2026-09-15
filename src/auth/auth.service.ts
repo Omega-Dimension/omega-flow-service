@@ -8,7 +8,6 @@ import { CreateUserDto } from '../user/dto/create-user.dto';
 import { throwConflict, throwUnauthorized } from '../libs/throwError';
 import { PasswordCheck, PasswordHash } from '../libs/globalFunctions';
 import { getAuth } from 'firebase-admin/auth';
-import { JwtUser } from '../libs/interfaces/jwt-user.interface';
 
 @Injectable()
 export class AuthService {
@@ -116,9 +115,11 @@ export class AuthService {
     const { email, uid } = decoded;
     if (!email) throwUnauthorized('Google acc has no email');
     let user = await this.userRepository.findOne({ where: { email } });
+
     if (!user) {
       user = this.userRepository.create({
         email,
+        name: decoded.name ?? email.split('@')[0],
         firebase_uid: uid,
         provider: 'google',
         is_active: true,
@@ -145,20 +146,20 @@ export class AuthService {
    * 3. Throw if the user does not exist.
    */
   async me(userId: string) {
-  const user = await this.userRepository.findOne({
-    where: { id: userId },
-    select: {
-      id: true,
-      email: true,
-      created_at: true,
-      updated_at: true,
-    },
-  });
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
 
-  if (!user) {
-    throwUnauthorized('User not found');
+    if (!user) {
+      throwUnauthorized('User not found');
+    }
+
+    return user;
   }
-
-  return user;
-}
 }
