@@ -114,7 +114,13 @@ export class AuthService {
     const decoded = await getAuth().verifyIdToken(id_token);
     const { email, uid } = decoded;
     if (!email) throwUnauthorized('Google acc has no email');
-    let user = await this.userRepository.findOne({ where: { email } });
+    let user = await this.userRepository.findOne({
+      where: { email },
+      relations: {
+        freelancer_profile: true,
+        client_profile: true,
+      },
+    });
 
     if (!user) {
       user = this.userRepository.create({
