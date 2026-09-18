@@ -120,7 +120,7 @@ export class AuthService {
         freelancer_profile: true,
         client_profile: true,
       },
-    });
+    }); 
 
     if (!user) {
       user = this.userRepository.create({

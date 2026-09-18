@@ -64,12 +64,14 @@ export class EventsGateway
 
       void client.join(`${USER_ROOM_PREFIX}${payload.sub}`);
       (client.data as SocketData).user_id = payload.sub;
-      console.log("user-room-prefix, payload.sub, clientid", USER_ROOM_PREFIX, payload.sub, client.id)
+      console.log(
+        'user-room-prefix, payload.sub, clientid',
+        USER_ROOM_PREFIX,
+        payload.sub,
+        client.id,
+      );
 
       this.logger.log(`Client ${client.id} joined room user:${payload.sub}`);
-
-
-
     } catch (error) {
       this.logger.warn(
         `Rejected unauthenticated socket ${client.id}: ${error instanceof Error ? error.message : 'unknown'}`,
