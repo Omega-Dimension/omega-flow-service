@@ -7,12 +7,5 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    environment:
-      DB_HOST: postgres
     ports:
       - "4000:4000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-volumes:
-  pgdata:
